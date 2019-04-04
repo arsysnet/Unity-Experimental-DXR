@@ -3,7 +3,7 @@
 This repository contains the Experimental DXR project.
 This project use large file storage. Please check https://git-lfs.github.com/ first step to configure large file storage on your system.
 
-The Experimental DXR project is a Unity custom version with binaries based on the 2019.2a5 version of Unity, enhanced with DXR support and version 5.8.0 of HDRP enhanced with DXR support. It is aWindows only version with DX12 API.
+The Experimental DXR project is a Unity custom version with binaries based on the 2019.2a5 version of Unity, enhanced with DXR support and version 5.8.0 of HDRP enhanced with DXR support. It is a Windows 10 (64 bit) only version with DX12 API.
 
 This project is a sandbox in which you can  play with real time ray tracing features in Unity. This is a prototype and the final implementation of DXR will be different from this version. This project can not be used to do any production work.
 
