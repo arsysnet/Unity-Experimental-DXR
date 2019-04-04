@@ -1,0 +1,55 @@
+English|default=Verdana, Tahoma, Arial
+English|Lucida Grande=Verdana, Tahoma
+English|Lucida Grande Bold=Verdana Bold, Tahoma Bold
+English|Lucida Grande small=Verdana, Tahoma
+English|Lucida Grande small bold=Verdana Bold, Tahoma Bold
+English|Lucida Grande Big=Verdana, Tahoma
+English|Lucida Grande Warning=Verdana, Tahoma
+
+Japanese|default=Yu Gothic UI, Meiryo UI, Verdana, Tahoma, Arial
+Japanese|Lucida Grande=Yu Gothic UI, Meiryo UI, Verdana, Tahoma
+Japanese|Lucida Grande Bold=Yu Gothic UI Bold, Meiryo UI Bold, Verdana Bold, Tahoma Bold
+Japanese|Lucida Grande small=Yu Gothic UI, Meiryo UI, Verdana, Tahoma
+Japanese|Lucida Grande small bold=Yu Gothic UI Bold, Meiryo UI Bold, Verdana Bold, Tahoma Bold
+Japanese|Lucida Grande Big=Yu Gothic UI, Meiryo UI, Verdana, Tahoma
+Japanese|Lucida Grande Warning=Yu Gothic UI, Meiryo UI, Verdana, Tahoma
+
+Chinese|default=Lucida Grande, Microsoft YaHei, SimHei, STHeiti, Verdana, Tahoma, Arial
+Chinese|Lucida Grande=Lucida Grande, Microsoft YaHei, SimHei, STHeiti, Verdana, Tahoma
+Chinese|Lucida Grande Bold=Lucida Grande Bold, Microsoft YaHei Bold, SimHei, STHeiti, Verdana Bold, Tahoma Bold
+Chinese|Lucida Grande small=Lucida Grande, Microsoft YaHei, SimHei, STHeiti, Verdana, Tahoma
+Chinese|Lucida Grande small bold=Lucida Grande Bold, Microsoft YaHei Bold, SimHei, STHeiti, Verdana Bold, Tahoma Bold
+Chinese|Lucida Grande Big=Lucida Grande, Microsoft YaHei, SimHei, STHeiti, Verdana, Tahoma
+Chinese|Lucida Grande Warning=Lucida Grande, Microsoft YaHei, SimHei, STHeiti, Verdana, Tahoma
+
+ChineseTraditional|default=Microsoft YaHei, SimHei, STHeiti, Verdana, Tahoma, Arial
+ChineseTraditional|Lucida Grande=Microsoft YaHei, SimHei, STHeiti, Verdana, Tahoma
+ChineseTraditional|Lucida Grande Bold=Microsoft YaHei Bold, SimHei, STHeiti, Verdana Bold, Tahoma Bold
+ChineseTraditional|Lucida Grande small=Microsoft YaHei, SimHei, STHeiti, Verdana, Tahoma
+ChineseTraditional|Lucida Grande small bold=Microsoft YaHei Bold, SimHei, STHeiti, Verdana Bold, Tahoma Bold
+ChineseTraditional|Lucida Grande Big=Microsoft YaHei, SimHei, STHeiti, Verdana, Tahoma
+ChineseTraditional|Lucida Grande Warning=Microsoft YaHei, SimHei, STHeiti, Verdana, Tahoma
+
+ChineseSimplified|default=Microsoft YaHei, SimHei, STHeiti, Verdana, Tahoma, Arial
+ChineseSimplified|Lucida Grande=Microsoft YaHei, SimHei, STHeiti, Verdana, Tahoma
+ChineseSimplified|Lucida Grande Bold=Microsoft YaHei Bold, SimHei, STHeiti, Verdana Bold, Tahoma Bold
+ChineseSimplified|Lucida Grande small=Microsoft YaHei, SimHei, STHeiti, Verdana, Tahoma
+ChineseSimplified|Lucida Grande small bold=Microsoft YaHei Bold, SimHei, STHeiti, Verdana Bold, Tahoma Bold
+ChineseSimplified|Lucida Grande Big=Microsoft YaHei, SimHei, STHeiti, Verdana, Tahoma
+ChineseSimplified|Lucida Grande Warning=Microsoft YaHei, SimHei, STHeiti, Verdana, Tahoma
+
+Korean|default=Yu Gothic UI, Meiryo UI, Verdana, Tahoma, Arial
+Korean|Lucida Grande=Yu Gothic UI, Meiryo UI, Verdana, Tahoma
+Korean|Lucida Grande Bold=Yu Gothic UI Bold, Meiryo UI Bold, Verdana Bold, Tahoma Bold
+Korean|Lucida Grande small=Yu Gothic UI, Meiryo UI, Verdana, Tahoma
+Korean|Lucida Grande small bold=Yu Gothic UI Bold, Meiryo UI Bold, Verdana Bold, Tahoma Bold
+Korean|Lucida Grande Big=Yu Gothic UI, Meiryo UI, Verdana, Tahoma
+Korean|Lucida Grande Warning=Yu Gothic UI, Meiryo UI, Verdana, Tahoma
+
+Russian|default=Lucida Grande, Arial
+Russian|Lucida Grande=Lucida Grande
+Russian|Lucida Grande Bold=Lucida Grande Bold
+Russian|Lucida Grande small=Lucida Grande
+Russian|Lucida Grande small bold=Lucida Grande Bold
+Russian|Lucida Grande Big=Lucida Grande
+Russian|Lucida Grande Warning=Lucida Grande

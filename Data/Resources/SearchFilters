@@ -1,0 +1,78 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &1
+MonoBehaviour:
+  m_ObjectHideFlags: 13
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 1
+  m_Script: {fileID: 12308, guid: 0000000000000000e000000000000000, type: 0}
+  m_Name:
+  m_EditorClassIdentifier:
+  m_RunInEditMode: 0
+  m_SavedFilters:
+  - m_Name: Favorites
+    m_Depth: 0
+    m_PreviewSize: 0
+    m_ID: 1000000000
+    m_Filter:
+      m_NameFilter:
+      m_ClassNames: []
+      m_AssetLabels: []
+      m_AssetBundleNames: []
+      m_VersionControlStates: []
+      m_ReferencingInstanceIDs:
+      m_ScenePaths: []
+      m_ShowAllHits: 0
+      m_SearchArea: 0
+      m_Folders: []
+  - m_Name: All Materials
+    m_Depth: 1
+    m_PreviewSize: 64
+    m_ID: 1000000001
+    m_Filter:
+      m_NameFilter:
+      m_ClassNames:
+      - Material
+      m_AssetLabels: []
+      m_AssetBundleNames: []
+      m_VersionControlStates: []
+      m_ReferencingInstanceIDs:
+      m_ScenePaths: []
+      m_ShowAllHits: 0
+      m_SearchArea: 0
+      m_Folders: []
+  - m_Name: All Models
+    m_Depth: 1
+    m_PreviewSize: 64
+    m_ID: 1000000002
+    m_Filter:
+      m_NameFilter:
+      m_ClassNames:
+      - Model
+      m_AssetLabels: []
+      m_AssetBundleNames: []
+      m_VersionControlStates: []
+      m_ReferencingInstanceIDs:
+      m_ScenePaths: []
+      m_ShowAllHits: 0
+      m_SearchArea: 0
+      m_Folders: []
+  - m_Name: All Prefabs
+    m_Depth: 1
+    m_PreviewSize: 64
+    m_ID: 1000000004
+    m_Filter:
+      m_NameFilter:
+      m_ClassNames:
+      - Prefab
+      m_AssetLabels: []
+      m_AssetBundleNames: []
+      m_VersionControlStates: []
+      m_ReferencingInstanceIDs:
+      m_ScenePaths: []
+      m_ShowAllHits: 0
+      m_SearchArea: 0
+      m_Folders: []

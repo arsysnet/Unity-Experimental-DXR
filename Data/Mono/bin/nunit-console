@@ -1,0 +1,2 @@
+#!/bin/sh
+exec $(dirname $0)/mono --debug $MONO_OPTIONS $(dirname $0)/../lib/mono/1.0/nunit-console.exe "$@"

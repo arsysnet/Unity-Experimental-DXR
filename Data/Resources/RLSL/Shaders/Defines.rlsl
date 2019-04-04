@@ -1,0 +1,27 @@
+/* Shared defines to be included from both rlsl and cpp files */
+
+// Target aka unique buffer name
+// (can't overlap between lightmaps and light probes)
+#define GI_BUFFER                            0
+#define AO_BUFFER                            1
+#define ENV_BUFFER                           2
+#define GI_DIRECT_BUFFER                     3
+#define GI_SAMPLES_BUFFER                    4
+#define DIRECT_SAMPLES_BUFFER                5
+#define ENV_SAMPLES_BUFFER                   6
+#define VALIDITY_BUFFER                      7
+#define DIRECTIONAL_FROM_DIRECT_BUFFER       8
+#define DIRECTIONAL_FROM_GI_BUFFER           9
+#define SHADOW_MASK_BUFFER                  10
+#define SHADOW_MASK_SAMPLE_BUFFER           11
+#define PROBE_BUFFER                        12
+#define PROBE_OCCLUSION_BUFFER              13
+#define CUSTOM_BAKE_BUFFER                  14
+
+// convergence bitmasks
+#define PVR_CONVERGED_DIRECT    (1<<0)
+#define PVR_CONVERGED_GI        (1<<1)
+#define PVR_CONVERGED_ENV       (1<<2)
+
+// limits
+#define PVR_MAX_ENVSAMPLES      16384

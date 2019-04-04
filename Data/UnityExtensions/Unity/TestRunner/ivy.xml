@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ivy-module version="2.0">
+  <info version="2019.2.0" organisation="Unity" module="TestRunner" e:packageType="UnityExtension" e:unityVersion="2019.2.0a5" xmlns:e="http://ant.apache.org/ivy/extra" />
+  <publications xmlns:e="http://ant.apache.org/ivy/extra">
+    <artifact name="Editor/UnityEditor.TestRunner" type="dll" ext="dll" e:guid="4113173d5e95493ab8765d7b08371de4" />
+    <artifact name="UnityEngine.TestRunner" type="dll" ext="dll" e:guid="53ebcfaa2e1e4e2dbc85882cd5a73fa1" />
+    <artifact name="net35/unity-custom/nunit.framework" type="dll" ext="dll" e:guid="4b3fa4bde7f1451a8218c03ee6a8ded8" />
+    <artifact name="portable/nunit.framework" type="dll" ext="dll" e:guid="405b9b51bb344a128608d968297df79c" />
+  </publications>
+</ivy-module>

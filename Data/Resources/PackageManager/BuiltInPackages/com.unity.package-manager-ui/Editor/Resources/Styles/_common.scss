@@ -1,0 +1,1143 @@
+﻿// If you are using IntelliJ Rider, you can simply turn on the SCSS compiler, otherwise here is how to convert scss to uss
+//		# Install Sass
+//				gem install sass
+//
+//		# Convert
+//				sass --sourcemap=none --style=expanded --scss --no-cache Main_Dark.scss Main_Dark.uss
+//				sass --sourcemap=none --style=expanded --scss --no-cache Main_Light.scss Main_Light.uss
+//
+//		# Watch
+//				sass --watch --sourcemap=none --style=expanded --scss --no-cache Main_Light.scss:Main_Light.uss Main_Dark.scss:Main_Dark.uss
+//
+//	Sass to Uss Notes
+//		- Sass converts rgb(0,0,0) to css 'black'. Uss doesn't support named colors. The workaround is to set the color in sass as #000000
+//
+// Uss Notes
+//		Runtime\UIElements\Managed\StyleSheets\StyleSheetCache.cs:50 to see which properties are available (until there is a doc)
+
+//--------------------------------------------------------------------------------------------------
+// Helper Mixins
+//--------------------------------------------------------------------------------------------------
+
+@mixin border($top, $right, $bottom, $left) {
+	@if $top != 'auto' {border-top-width: $top;}
+	@if $left != 'auto' {border-left-width: $right;}
+	@if $bottom != 'auto' {border-bottom-width: $bottom;}
+	@if $right != 'auto' {border-right-width: $left;}
+}
+
+@mixin border-box($width: 1) {
+	@include border($width, $width, $width, $width);
+}
+
+@mixin padding($top, $right, $bottom, $left) {
+	@if $top != 'auto' {padding-top: $top;}
+	@if $left != 'auto' {padding-left: $left;}
+	@if $bottom != 'auto' {padding-bottom: $bottom;}
+	@if $right != 'auto' {padding-right: $right;}
+}
+
+@mixin padding-box($size) {
+	@include padding($size, $size, $size, $size);
+}
+
+@mixin margin($top, $right, $bottom, $left) {
+	@if $top != 'auto' {margin-top: $top;}
+	@if $left != 'auto' {margin-left: $left;}
+	@if $bottom != 'auto' {margin-bottom: $bottom;}
+	@if $right != 'auto' {margin-right: $right;}
+}
+
+@mixin margin-box($size) {
+	@include margin($size, $size, $size, $size);
+}
+
+@mixin slice($top, $right, $bottom, $left) {
+	@if $top != 'auto' {-unity-slice-top: $top;}
+	@if $left != 'auto' {-unity-slice-left: $left;}
+	@if $bottom != 'auto' {-unity-slice-bottom: $bottom;}
+	@if $right != 'auto' {-unity-slice-right: $right;}
+}
+
+@mixin slice-box($size) {
+	@include slice($size, $size, $size, $size);
+}
+
+@mixin position($top, $right, $bottom, $left) {
+	@if $top != 'auto' {top: $top;}
+	@if $left != 'auto' {left: $left;}
+	@if $bottom != 'auto' {bottom: $bottom;}
+	@if $right != 'auto' {right: $right;}
+}
+
+@mixin text-clip() {
+	overflow: hidden;
+}
+
+@mixin selected-element() {
+	background-color: $unity-list-selected-background;
+	color: $unity-text-color-highlight;
+}
+
+@mixin active-tab() {
+	background-color: $unity-background-dark-contrast;
+	color: $unity-text-color-highlight;
+}
+
+@mixin inactive-tab() {
+	background-color: $unity-background-light-contrast;
+	color: $unity-text-color;
+}
+
+@mixin button($top, $right, $bottom, $left) {
+	flex: 0 0 auto;
+
+	@include padding($top, $right, $bottom, $left);
+	@include slice(4px, 6px, 4px, 6px);
+
+	&.display-none {
+		position: absolute;
+		border-radius: 0;
+		width: 0;
+		height: 0;
+		min-height: 0;
+		max-height: 0;
+		min-width: 0;
+		max-width: 0;
+		border-top-width: 0;
+		border-left-width: 0;
+		border-bottom-width: 0;
+		border-right-width: 0;
+		min-width: 0;
+		@include border-box(0);
+		@include padding-box(0);
+		@include margin-box(0);
+		@include slice-box(0);
+		visibility: hidden;
+	}
+
+	&:hover {
+		color: $unity-text-color;
+	}
+}
+
+@mixin button-box($size) {
+	@include button($size, $size, $size, $size);
+}
+
+//--------------------------------------------------------------------------------------------------
+// Font
+//--------------------------------------------------------------------------------------------------
+
+@mixin font-small() {
+	font-size: 9px;
+}
+
+@mixin font-normal() {
+	font-size: 12px;
+}
+
+//--------------------------------------------------------------------------------------------------
+// Styles
+//--------------------------------------------------------------------------------------------------
+
+#container {
+	position: absolute;
+	@include position(-2px, 0, 0, 0);
+}
+
+.display-none {
+	position: absolute;
+	overflow: hidden;
+	border-radius: 0;
+	width: 0;
+	height: 0;
+	min-height: 0;
+	max-height: 0;
+	min-width: 0;
+	max-width: 0;
+	border-top-width: 0;
+	border-left-width: 0;
+	border-bottom-width: 0;
+	border-right-width: 0;
+	@include border-box(0);
+	@include padding-box(0);
+	@include margin-box(0);
+}
+
+.row {
+	//flex: 1 0 0;
+	flex-direction: row;
+}
+
+.column {
+	flex: 1 0 0;
+	flex-direction: column;
+}
+
+.tag {
+	@include border-box(1px);
+	@include padding(1px, 3px, 1px, 3px);
+	@include font-small();
+	border-radius: 5px;
+	-unity-text-align: middle-center;
+
+	border-color: #000000;
+	color: #000000;
+}
+
+$spinner-large-size: 32px;
+$spinner-large-half-size: 16px;
+$spinner-normal-size: 14px;
+$spinner-normal-half-size: 7px;
+$toolbar-height: 18px;
+$text-normal-padding-horizontal: 6px; // 2 padding + 4 margin
+
+#toolbarContainer {
+	flex-direction: row;
+	align-items: flex-start;
+	height: $toolbar-height;
+	overflow: hidden;
+
+	#toolbarView {
+		flex: 1 0 0;
+		flex-direction: row;
+		align-items: flex-start;
+		background-image: $toolbar-background;
+		margin-top: -1px;
+		@include slice(1px, 1px, 1px, 1px);
+
+		.toolbarButton {
+			flex: 1 0 0;
+			font-size: 9px;
+			-unity-text-align: middle-center;
+			background-image: $toolbar-button-background;
+			@include button-box(0);
+			@include margin(0, -1px, 0, 0);
+			@include padding(0, 5px, 0, 5px);
+			height: 19px;
+
+			&.space {
+				margin-left: 7px;
+			}
+
+			&.active {
+				background-image: $toolbar-button-active-background;
+			}
+
+			&.pulldown {
+
+				&:active {
+					background-image: $toolbar-button-background;
+				}
+			}
+		}
+
+		#toolbarLeft {
+			flex: 0 0 auto;
+			flex-direction: row;
+			align-items: flex-start;
+
+			#toolbarAddButton {
+				font-size: 13px;
+				@include padding(0, 8px, 4px, 8px);
+				margin-right: -8px;
+			}
+		}
+
+		#toolbarRight {
+			flex: 1 0 0;
+			flex-direction: row;
+			justify-content: flex-end;
+
+			#toolbarSearch {
+				flex: 1 0 0;
+				height: $toolbar-height;
+				max-width: 500px;
+				flex-direction: row;
+				@include margin(0, 5px, 0, 0);
+			}
+		}
+	}
+}
+
+#searchContainer {
+	flex: 1 0 0;
+	flex-direction: row;
+	align-items: center;
+	justify-content: flex-start;
+	height: 14px;
+	@include margin(0, 0, 0, 0);
+
+	.unity-base-field 
+	{
+		flex: 1 0 0;
+		margin-bottom: 0;
+		min-height: 15px;
+		height: unset;
+	}
+
+	.unity-base-text-field.placeholder .unity-base-field__input{
+		color: $unity-background-dark-contrast;
+	}
+
+	.unity-base-field__input {
+		flex: 1 0 0;
+		font-size: 9px;
+		background-image: $toolbar-search-textfield-background;
+		@include margin(1px, 5px, 1px, 5px);
+		@include padding(2px, 17px, 1px, 17px);
+		@include slice(1px, 0, 1px, 14px);
+		height: 15px;
+
+		&:focus {
+			background-image: $toolbar-search-textfield-focus-background;
+		}
+
+	}
+	
+	#searchCancelButton {
+		width: 14px;
+		height: 15px;
+		min-height: 15px;
+		background-image: $toolbar-search-cancel-off-background;
+		@include button-box(0);
+		@include slice(1px, 14px, 1px, 0);
+		@include margin(1px, 0, 0, -10px);
+		@include padding-box(0);
+		@include border-box(0);
+
+		&.on {
+			background-image: $toolbar-search-cancel-background;
+		}
+
+		&:active {
+			background-image: $toolbar-search-cancel-active-background;
+		}
+	}
+}
+
+#detailListView {
+	flex: 1 0 0;
+	flex-direction: row;
+
+	.link {
+		color: $link-text-color;
+		background: rgba(0, 0, 0, 0);
+		background-image: none;
+		@include margin-box(0);
+		@include padding-box(0);
+		cursor: link;
+	}
+
+	.emptyArea {
+		flex: 1 0 0;
+		@extend .column;
+
+		.title {
+			-unity-text-align: middle-center;
+			font-size: 14px;
+		}
+
+		.loading {
+			position: relative;
+			@include position($spinner-normal-half-size, auto, auto, $spinner-normal-half-size);
+
+			@include border-box(0);
+			@include padding-box(0);
+			@include margin-box(0);
+			@include slice-box(0);
+
+			width: $spinner-normal-size;
+			height: $spinner-normal-size;
+			max-width: $spinner-normal-size;
+			max-height: $spinner-normal-size;
+		}
+	}
+
+	#headerTitle {
+		flex: 1 0 0;
+		font-size: 12px;
+		-unity-font-style: bold;
+		color: $unity-text-color;
+	}
+
+	#headerCaret {
+		flex: 0 0 auto;
+		font-size: 12px;
+		-unity-font-style: bold;
+		color: $unity-text-color;
+		min-width: 16px;
+	}
+
+	#spinnerContainer {
+		width: 14px;
+
+		flex: 0.1 0 0;
+		flex-direction: column;
+		align-items: center;
+	}
+
+	#loadingSpinnerContainer {
+	}
+
+	.loading {
+		@include position($spinner-normal-half-size, auto, auto, $spinner-normal-half-size);
+		@include border-box(0);
+		@include padding-box(0);
+		@include margin-box(0);
+		@include slice-box(0);
+
+		width: $spinner-normal-size;
+		height: $spinner-normal-size;
+		max-width: $spinner-normal-size;
+		max-height: $spinner-normal-size;
+	}
+
+	.combo {
+		@extend .row;
+		@include margin-box(3px);
+		@include padding-box(3px);
+
+		.popupField .unity-base-field__input {
+			@include padding(0, 0, 0, 8px);
+			@include margin-box(0);
+			border-top-left-radius: 0;
+			border-bottom-left-radius: 0;
+		}
+
+		.button {
+			flex: 1 0 0; // Make buttons take all the parent's free space
+
+			@include font-normal();
+			@include border-box(0);
+			@include margin-box(0);
+			@include padding(2px, 6px, 3px, 6px);
+			@include slice(4px, $background-button-slice-middle, 4px, $background-button-slice-middle);
+
+			-unity-text-align: middle-center;
+			border-left-width: 0;
+			border-top-width: 0;
+			border-right-width: 0;
+			border-bottom-width: 0;
+			background-image: $background-mid-button;
+
+			border-top-right-radius: 0;
+			border-bottom-right-radius: 0;
+			border-top-left-radius: 0;
+			border-bottom-left-radius: 0;
+
+			&.selected {
+				background-image: $background-mid-button-selected;
+				color: $unity-text-color-highlight;
+			}
+
+			&.first {
+				@include slice(4px, $background-button-slice-right, 4px, 6px);
+				background-image: $background-left-button;
+
+				&.selected {
+					background-image: $background-left-button-selected;
+				}
+			}
+
+			&.last {
+				@include slice(4px, 6px, 4px, $background-button-slice-left);
+				background-image: $background-right-button;
+
+				&.selected {
+					background-image: $background-right-button-selected;
+				}
+			}
+
+
+			&.small {
+				flex: 0.5 0 0;
+				@include padding(0, 0, 0, 0);
+			}
+		}
+	}
+
+	//--------------------------------------------------------------------------------------------------
+	// Package List
+	//--------------------------------------------------------------------------------------------------
+	#packageListGroup {
+		width: 300px;
+		border-right-width: 1px;
+		border-color: rgba(0,0,0, 0.5);
+
+		#listContainerOuter {
+			@extend .column;
+		}
+
+		#groupContainerOuter {
+
+			#headerContainer {
+				flex: 1 0 0;
+				flex-direction: row;
+				align-items: center;
+				border-color: rgba(0,0,0, 0.5);
+
+				#headerTitle {
+					height: 0;
+					min-height: 0;
+					@include margin-box(0);
+					@include padding-box(0);
+					@include border-box(0);
+				}
+			}
+
+			#groupContainer {
+				@include margin(0, 0, 0, 0);
+			}
+		}
+
+		#packageList, #listContainer, #listGroups {
+			@extend .column;
+		}
+
+		#scrollView {
+			@extend .column;
+
+			#unity-vertical-scroller {
+				bottom: 0;
+			}
+
+			#unity-horizontal-scroller {
+				height: 0;
+			}
+
+			#unity-content-viewport {
+				bottom: 0;
+
+				#unity-content-container {
+					right: 0;
+					left: 0;
+				}
+			}
+		}
+		
+		#noResult {
+			#noResultText {
+				-unity-word-wrap: true;
+				white-space: normal;
+			}
+		}
+	}
+
+	//--------------------------------------------------------------------------------------------------
+	// Package Item
+	//--------------------------------------------------------------------------------------------------
+	.packageItem {
+		@include margin(0, 0, 0, 0);
+		border-color: rgba(0, 0, 0, 0.5);
+		border-bottom-width: 1px;
+
+		#itemLabel {
+			//flex: 1 0 0;
+			flex-direction: row;
+			align-items: center;
+
+			.unity-label {
+				@include padding(1px, 2px, 2px, 2px);
+				@include margin(2px, 4px, 2px, 4px);
+				min-height: unset;
+			}
+			&.selected {
+				@include selected-element();
+
+				#packageName, #packageVersion {
+					color: $unity-text-color-highlight;
+				}
+			}
+
+			.status {
+				min-height:unset;
+				flex: 0 0 14;
+				width: 14px;
+				height: 14px;
+				@include padding(1px, 2px, 2px, 2px);
+				@include margin(2px, 0, auto, 2px);
+
+				&.installed {
+					background-image: $installed-package-background;
+					&.no-icon {
+						background-image: none;
+					}
+				}
+
+				&.outdated {
+					background-image: $background-status-outdated;
+					&.no-icon {
+						background-image: none;
+					}
+				}
+
+				&.inprogress {
+					background-image: none;
+				}
+
+				&.error {
+					background-image: $background-status-error;
+				}
+			}
+
+			.name {
+				flex: 1 0 0;
+				width: 160px;
+				@include font-normal();
+				@include margin(auto, 5px, auto, 0);
+				@include text-clip();
+			}
+		}
+
+		$package-item-padding-right: 5px;
+
+		.endText {
+			padding-left: 0;
+			padding-right: $package-item-padding-right;
+		}
+
+		#itemVersions {
+			background-color: $unity-background-light-contrast;
+
+			#versionList {
+				min-height: 75px;
+				max-height: 150px;
+				flex: 1 0 auto;
+
+				$padding-item-right: $package-item-padding-right + $text-normal-padding-horizontal + 15;
+				$scrollBar-size: 15;
+				&.hasScrollBar {
+					PackageVersionLabel {
+						padding-right: $padding-item-right - $scrollBar-size;
+					}
+				}
+
+				PackageVersionLabel {
+					min-height: unset;
+					overflow: hidden;
+					color: $unity-text-color;
+					padding-right: $padding-item-right;
+					padding-top: 4px;
+					padding-bottom: 4px;
+					-unity-text-align: middle-right;
+
+					&.selected {
+						@include selected-element();
+					}
+
+					@include margin-box(0);
+				}
+			}
+
+			#versionsToolbar {
+				align-items: flex-end;
+				border-top-width: 1px;
+				border-color: rgba(0, 0, 0, 0.5);
+
+				.unity-label {
+					@include padding(1px, 2px, 2px, 2px);
+					@include margin(2px, 4px, 2px, 4px);
+					min-height: unset;
+				}
+
+			}
+		}
+	}
+
+	//--------------------------------------------------------------------------------------------------
+	// Package Details
+	//--------------------------------------------------------------------------------------------------
+	#detailsGroup {
+		flex: 1 0 0;
+
+		#detailsContainer {
+			flex: 1 0 0;
+			flex-direction: column;
+			position: relative;
+		}
+	}
+
+	#detailView {
+		flex: 1 0 0;
+
+		#unity-vertical-scroller {
+			bottom: 0;
+		}
+
+		#unity-content-viewport {
+			#unity-content-container {
+				position: absolute;
+				@include position(0, 0, auto, 0);
+			}
+		}
+
+		.detail {
+			@include padding-box(5px);
+
+			.header {
+				flex-direction: row;
+				align-items: flex-start;
+				justify-content: space-between;
+
+				margin-bottom: 8px;
+
+				#titleContainer {
+					flex: 1 0 0;
+
+					#detailTitle {
+						font-size: 18px;
+						-unity-font-style: bold;
+						-unity-word-wrap: true;
+						white-space: normal;
+						@include margin(0, 0, 0, 4px);
+					}
+				}
+			}
+
+			.unity-button {
+				@include border(4px, 6px, 4px, 6px);
+
+				-unity-text-align: middle-center;
+			}
+			.unity-label {
+				@include margin(2px, 4px, 2px, 4px);
+				@include padding(1px, 2px, 2px, 2px);
+			}
+			
+			#detailVersion {
+				font-size: 16px;
+				max-height: 30px;
+			}
+
+			#detailName {
+				max-height: 20px;
+				-unity-font-style: italic;
+			}
+
+			#detailPackageStatus {
+				-unity-font-style: bold;
+				-unity-word-wrap: true;
+				white-space: normal;
+			}
+
+			#detailTag {
+				width: 60px;
+				@include font-normal();
+				border-radius: 5px;
+				border-color: rgb(180, 180, 180);
+				@include border-box(2px);
+				-unity-text-align: middle-center;
+			}
+
+			#detailDesc, #detailModuleReference {
+				@include font-normal();
+				-unity-word-wrap: true;
+				white-space: normal;
+				
+				&.empty {
+					-unity-font-style: italic;
+				}
+			}
+
+			#detailAuthor {
+				@include font-normal();
+				-unity-word-wrap: true;
+				white-space: normal;
+			}
+
+			#detailCategory {
+				@include font-normal();
+				-unity-word-wrap: true;
+				white-space: normal;
+				@include margin(auto, auto, 5px, auto);
+			}
+
+			#changeLogContainer, #viewLicensesContainer {
+				flex: 0 0 auto;
+				flex-direction: row;
+			}
+
+			#detailActions, .detailActions {
+				flex: 0 0 auto;
+				flex-direction: row;
+				margin-left: 2px;
+
+				@extend .row;
+
+				.detailAction {
+					@include margin(auto, 0, auto, 0);
+					@include padding(auto, 2px, auto, 2px);
+					border-left-width: 2px;
+					border-right-width: 2px;
+				}
+
+				.detailActionSeparator {
+					@include margin(auto, 0, auto, 0);
+					@include padding(auto, 0, auto, 0);
+					border-left-width: 0;
+					border-right-width: 0;
+				}
+
+				#thirdPartyNoticeLabel {
+					@include margin(4px, 0, 4px, 0);
+					@include padding-box(0);
+					-unity-word-wrap: true;
+					white-space: normal;
+				}
+
+				#viewThirdParty {
+					border-right-width: 0;
+				}
+			}
+
+			.versionContainer {
+				@extend .row;
+				align-items: center;
+				justify-content: flex-start;
+
+				#detailVersion {
+					flex: 0 0 auto;
+				}
+			}
+
+			#samplesHeaderLabel {
+				margin-top: 10px;
+				-unity-font-style: bold;
+			}
+
+			#samplesContainer {
+				@extend .row;
+
+				#importStatusContainer {
+					Label {
+						width: 16px;
+						height: 16px;
+						@include margin(6px, 2px, 6px, 2px);
+						&.imported {
+							background-image: $installed-package-background;
+						}
+					}
+				}
+
+				#nameLabelContainer {
+					Label {
+						@include margin(2px, 12px, 2px, 4px);
+						height: 24px;
+						-unity-text-align: middle-left;
+					}
+				}
+
+				#sizeLabelContainer {
+					Label {
+						@include margin(2px, 12px, 2px, 8px);
+						height: 24px;
+						-unity-text-align: middle-left;
+					}
+				}
+
+				#importButtonContainer {
+					Button {
+						overflow: visible;
+						@include margin(4px, 12px, 4px, 8px);
+						height: 20px;
+					}
+				}
+			}
+
+			.tag {
+				border-color: $package-tag-color;
+				color: $package-tag-color;
+
+				&.verified {
+					border-color: $package-tag-recommended-color;
+					color: $package-tag-recommended-color;
+				}
+			}
+
+			.tagLines {
+			}
+
+			.tagLine {
+				flex: 0 0 auto;
+				flex-direction: row;
+			}
+
+			.tagContainer {
+			}
+
+			#detailDependencies {
+				flex: 1 0 0;
+				margin-top: 10px;
+			}
+		}
+	}
+
+	#detailError {
+		position: absolute;
+		@include position(5px, 5px, auto, 5px);
+		min-height: 200px;
+		-unity-word-wrap: true;
+		white-space: normal;
+		
+		&.display-none {
+			@include position(0, 0, 0, 0);
+			width: 0;
+			height: 0;
+			min-height: 0;
+			max-height: 0;
+			@include border-box(0);
+			@include padding-box(0);
+			@include margin-box(0);
+		}
+	}
+
+	$toolbar-height: 30px;
+
+	#packageToolBar {
+		position: relative;
+
+		@include margin(2px, 0, 0, 0);
+
+		border-color: rgba(0, 0, 0, 0.5);
+		@include border(1px, 0, 0, 0);
+
+		background-color: $unity-background-light-contrast;
+
+		min-height: $toolbar-height;
+		max-height: $toolbar-height;
+
+		#toolbarContainer {
+			flex-direction: row;
+			align-items: center;
+			justify-content: space-between;
+			min-height: $toolbar-height;
+			max-height: $toolbar-height;
+
+			#leftItems {
+				flex-shrink: 1;
+			}
+
+			#rightItems {
+				flex-grow: 1;
+				flex-direction: row;
+				align-items: center;
+				justify-content: flex-end;
+			}
+
+			.unity-label {
+				@include margin(2px, 4px, 2px, 4px);
+				@include padding(1px, 2px, 2px, 2px);
+			}
+			Button {
+				flex: 0 0 auto;
+				height: 20px;
+				@include margin(3px, 4px, 3px, 4px);
+				@include padding(0px, 6px, 3px, 6px);
+				@include border(4px, 6px, 4px, 6px);
+				overflow: visible;
+				-unity-text-align:middle-center;
+
+				&:hover {
+					color: $unity-text-color;
+				}
+			}
+		}
+	}
+
+	#packageStatusBar {
+		position: relative;
+
+		@include margin(2px, 0, 0, 0);
+
+		border-color: rgba(0, 0, 0, 0.5);
+		@include border(1px, 0, 0, 0);
+
+		min-height: $toolbar-height;
+		max-height: $toolbar-height;
+		background-color: $unity-background-light-contrast;
+	}
+
+	#statusBarContainer {
+		flex-direction: row;
+		align-items: center;
+		justify-content: flex-start;
+		min-height: $toolbar-height;
+		max-height: $toolbar-height;
+		margin-left: 2px;
+
+		#errorIcon {
+			background-image: $background-status-error;
+			width: 16px;
+			height: 16px;
+			margin-left: 2px;
+			margin-right: 0;
+		}
+
+		#statusLabel {
+			padding-left: 2px;
+			-unity-font-style: italic;
+			@include margin(2px, 4px, 2px, 4px);
+			
+			&.icon {
+				margin-left: 0;
+			}
+		}
+	}
+
+	#packageAddFromIdField {
+		position: absolute;
+		@include position(0, 0, 0, 0);
+	}
+
+	#addFromIdFieldContainer {
+		border-color: rgba(0, 0, 0, 0.5);
+		@include border(1px, 0, 1px, 0);
+
+		flex-direction: row;
+		justify-content: space-between;
+		align-items: center;
+
+		height: 35px;
+		background-color: $unity-background;
+
+		#idTextField {
+			flex: 1 0 0;
+			height: 20px;
+			-unity-text-align: middle-left;
+		}
+
+		#addFromIdButton {
+			flex: 0 0 auto;
+			height: 25px;
+			background-image: $background-button;
+			-unity-text-align: middle-center;
+			@include padding(2px, auto, 2px, auto);
+			@include border(4px, 6px, 4px, 6px);
+			@include slice(4px, 6px, 4px, 6px);			
+		}
+	}
+
+	#dependenciesOuterContainer {
+		flex: 0 0 auto;
+		flex-direction: row;
+
+		@extend .row;
+
+		#dependenciesInnerContainer {
+			flex: 0 0 auto;
+			flex-direction: column;
+
+			@extend .column;
+
+			#dependenciesHeaderLabel {
+				flex: 0 0 auto;
+				flex-direction: row;
+				font-style: bold;
+
+				@include padding(auto, auto, auto, 6px);
+				@include margin(0, 0, 4px, 0);
+			}
+
+			#dependenciesContainer {
+				flex: 0 0 auto;
+				flex-direction: row;
+				margin-left: 6px;
+				margin-right: 6px;
+
+				#noDependencies {
+					flex: 0 0 auto;
+					@include padding(auto, 0, auto, 0);
+					@include margin(auto, 0, auto, 0);
+
+					.display-none {
+						overflow: hidden;
+						@include position(0, 0, 0, 0);
+						width: 0;
+						height: 0;
+						min-height: 0;
+						max-height: 0;
+						@include border-box(0);
+						@include padding-box(0);
+						@include margin-box(0);
+						visibility: hidden;
+					}
+				}
+
+				.text {
+					font-style: normal;
+					height: 14px;
+					@include padding(0, 2px, 0, 0);
+				}
+
+				#dependenciesNames {
+					@include margin(auto, 8px, 3px, -4px);
+				}
+
+				#dependenciesVersions {
+					@include margin(auto, 2px, 3px, 2px);
+				}
+
+				#dependenciesVersions {
+					@include margin(auto, 2px, 3px, 2px);
+				}
+			}
+		}
+	}
+}
+
+.alert {
+	background-color: rgba(200,0,0,0.8);
+	border-color: #FF0000;
+	flex-direction: row;
+
+	@include border-box(1px);
+	@include padding(5px, 10px, 5px, 10px);
+
+	#alertMessage {
+		flex: 1 0 0;
+		color: $unity-text-color-highlight;
+		-unity-word-wrap: true;
+		white-space: normal;
+		@include text-clip();
+	}
+
+	#close {
+		flex: 0 0 auto;
+		max-height: 30px;
+		@include position(auto, auto, auto, 5px);
+		@include button(3px,3px,4px,3px);
+	}
+}
+
+.spinner {
+	flex: 0 0 auto;
+	@include position(-$spinner-normal-half-size, auto, auto, -$spinner-normal-half-size);
+
+	min-width: $spinner-normal-size;
+	min-height: $spinner-normal-size;
+	max-width: $spinner-normal-size;
+	max-height: $spinner-normal-size;
+	background-image: $background-spinner-normal;
+}
+
+.largeSpinner {
+	flex: 0 0 auto;
+	@include position(-$spinner-large-half-size, auto, auto, -$spinner-large-half-size);
+
+	min-width: $spinner-large-size;
+	min-height: $spinner-large-size;
+	max-width: $spinner-large-size;
+	max-height: $spinner-large-size;
+	background-image: $background-spinner-large;
+}
+
+.arrow {
+	@include padding(3px, 2px, 0, 2px);
+	opacity: 0.5;
+
+	&.expanded {
+		padding-right: 1px;
+	}
+}

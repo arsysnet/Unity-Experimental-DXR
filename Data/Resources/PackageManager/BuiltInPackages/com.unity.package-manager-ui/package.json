@@ -1,0 +1,8 @@
+{
+	"name": "com.unity.package-manager-ui",
+	"displayName": "Package Manager UI",
+	"version": "2.1.1",
+	"unity": "2019.1",
+	"description": "Use the Unity Package Manager user interface to manage a Project's packages and discover new packages.\n\nFor more information, click the 'View documentation' link above. ",
+	"dependencies": {}
+}

@@ -1,0 +1,246 @@
+/*
+    This file contains helper functions for (multiple importance) sampling the environment/sky.
+*/
+
+
+// EnvironmentLightingSamples contains data used to MIS (multiple importance sample) the environment map
+uniformblock EnvironmentLightingSamples
+{
+    int   NumRaysIndirect;                          // number of environment rays shot for each subsequent intersection of a path
+    int   NumSamples;                               // the actual number of valid samples in the Directions and WeightedIntensities arrays
+    float EnvmapIntegral;                           // contains the integral of the environment over the sphere surface according to a given metric
+    int   Flags;                                    // various flags
+    vec4  Directions[PVR_MAX_ENVSAMPLES];           // contains a direction into the environment map
+    vec4  WeightedIntensities[PVR_MAX_ENVSAMPLES];  // contains (sampleIntensity / EnvironmentPDF)
+};
+
+uniformblock SkyboxTextures
+{
+    sampler2D FrontTex;
+    sampler2D BackTex;
+    sampler2D LeftTex;
+    sampler2D RightTex;
+    sampler2D UpTex;
+    sampler2D DownTex;
+};
+
+bool UseEnvironmentMIS()
+{
+    return (EnvironmentLightingSamples.Flags & 1) != 0;
+}
+
+bool SampleDirectEnvironment()
+{
+    return (EnvironmentLightingSamples.Flags & 2) == 0 && IntegratorSamples.maxBounces > 0;
+}
+
+bool SampleIndirectEnvironment()
+{
+    return (EnvironmentLightingSamples.Flags & 4) == 0;
+}
+
+int GetRaysPerEnvironmentIndirect()
+{
+    return EnvironmentLightingSamples.NumRaysIndirect;
+}
+
+
+vec3 GetSkyBoxColor(vec3 direction)
+{
+    vec2 skyTexCoord;
+
+    vec3 tempDir = normalize(direction);
+    direction = tempDir;
+
+    vec3 absDir = abs(direction);
+
+    vec4 texColor = vec4(1.0);
+
+    //See if the X axis is dominant in the direction vector
+    if (absDir.x > absDir.y && absDir.x > absDir.z) {
+        if (direction.x > 0.0) {
+            skyTexCoord = vec2(-direction.z / absDir.x, -direction.y / absDir.x) / vec2(2.0) + vec2(0.5);
+            texColor = texture2D(SkyboxTextures.LeftTex, skyTexCoord);
+        }
+        else {
+            skyTexCoord = vec2(direction.z / absDir.x, -direction.y / absDir.x) / vec2(2.0) + vec2(0.5);
+            texColor = texture2D(SkyboxTextures.RightTex, skyTexCoord);
+        }
+    }
+    else {
+        if (absDir.y > absDir.z) {
+            if (direction.y > 0.0) {
+                skyTexCoord = vec2(direction.x / absDir.y, direction.z / absDir.y) / vec2(2.0) + vec2(0.5);
+                texColor = texture2D(SkyboxTextures.UpTex, skyTexCoord);
+            }
+            else {
+                skyTexCoord = vec2(direction.x / absDir.y, -direction.z / absDir.y) / vec2(2.0) + vec2(0.5);
+                texColor = texture2D(SkyboxTextures.DownTex, skyTexCoord);
+            }
+        }
+        else {
+            if (direction.z > 0.0) {
+                skyTexCoord = vec2(direction.x / absDir.z, -direction.y / absDir.z) / vec2(2.0) + vec2(0.5);
+                texColor = texture2D(SkyboxTextures.FrontTex, skyTexCoord);
+            }
+            else {
+                skyTexCoord = vec2(-direction.x / absDir.z, -direction.y / absDir.z) / vec2(2.0) + vec2(0.5);
+                texColor = texture2D(SkyboxTextures.BackTex, skyTexCoord);
+            }
+        }
+    }
+
+    return texColor.xyz;
+}
+
+// sets up parameters for an environment ray
+void CastEnvironment(int target, vec3 pos, vec3 dir, vec3 firstDir, vec3 albedo, vec3 intensity, float weight, int depth, int transDepth, LightmapMode lightmapMode)
+{
+    createRay();
+    rl_OutRay.origin           = pos.xyz;
+    rl_OutRay.direction        = dir;
+    rl_OutRay.color            = vec4(intensity, 0.0 );
+    rl_OutRay.probeDir         = firstDir;
+    rl_OutRay.defaultPrimitive = GetEnvPrimitive();
+    rl_OutRay.renderTarget     = target;
+    rl_OutRay.isOutgoing       = true;          // undocumented built-in boolean
+    rl_OutRay.sampleIndex      = 0;             // unused
+    rl_OutRay.cpShift          = vec3(0.0);     // unused - env rays don't use this to spawn new directions
+    rl_OutRay.rayClass         = ENV_RAY_CLASS;
+    rl_OutRay.depth            = depth;
+    rl_OutRay.weight           = weight;
+    rl_OutRay.occlusionTest    = true;
+    rl_OutRay.albedo           = albedo;
+    rl_OutRay.sameOriginCount  = 0;
+    rl_OutRay.transmissionDepth= transDepth;
+    rl_OutRay.lightmapMode     = lightmapMode;
+    emitRayWithoutDifferentials();
+}
+
+// mis path related functions to estimate pdfs
+float EnvironmentMetric(vec3 intensity)
+{
+    // use the max intensity as a metric. Keep in sync with EnvironmentMetric in .cpp
+    return max(max(intensity.r, intensity.g), intensity.b);
+}
+
+// calculates the mis weight using a balanced heuristic
+float EnvironmentHeuristic(float pdf1, float pdf2)
+{
+    float denom = pdf1 + pdf2;
+    return denom > 0.0 ? (pdf1 / denom) : 0.0;
+}
+
+// mis path for sampling the environment according to the one-sample model
+void SurfaceSampleEnvironmentMIS(int target, vec3 position, vec3 firstDir, vec3 interpNormal, vec3 geomNormal, vec3 albedo, vec3 rand, float weight, int depth, int transDepth, LightmapMode lightmapMode, bool firstDirValid)
+{
+    // frame of reference for sampling hemisphere
+    vec3 b1, b2;
+    CreateOrthoNormalBasis(interpNormal, b1, b2);
+    mat3 onb = mat3(b1, b2, interpNormal);
+
+    vec3 direction, intensity;
+    bool shootRay;
+
+    // Use one random sample rule instead of estimating both pdfs.
+    // Due to this the chosen path has its mis weight multiplied by 2.0 as we're evenly drawing from the two pdfs.
+
+    if (rand.z > 0.5)
+    {
+        int   sampleIndex = int(fract(rand.x) * float(EnvironmentLightingSamples.NumSamples)) % EnvironmentLightingSamples.NumSamples;
+              direction   = EnvironmentLightingSamples.Directions[sampleIndex].xyz;
+        float cosdir      = max( 0.0, dot(direction, onb[2]));
+        float pdf_diffuse = cosdir / PI;
+              intensity   = GetSkyBoxColor(direction);
+        float metric      = EnvironmentMetric(intensity);
+        float pdf_envmap  = metric / EnvironmentLightingSamples.EnvmapIntegral;
+        float mis_weight  = EnvironmentHeuristic(pdf_envmap, pdf_diffuse);
+
+        // The final weight is "2.0 * mis_weight * intensity / pdf_environment * cos(dir, N) / PI", but we have pre-calculated "intensity / pdf_environment" on the CPU already
+        // The multiplication by 2.0 compensates for us not drawing from both densities, but randomly and evenly choosing one of them.
+        vec3 weightedIntensity = EnvironmentLightingSamples.WeightedIntensities[sampleIndex].xyz;
+             intensity         = 2.0 * mis_weight * weightedIntensity * cosdir / PI;
+             shootRay          = dot(direction, geomNormal) > 0.0 && cosdir > 0.0;
+    }
+    else
+    {
+              direction   = HemisphereCosineSample(rand.xy);                    // cosine weighted samples
+        float pdf_diffuse = direction.z / PI;                                   // cosine weight
+              direction   = onb * direction;
+              intensity   = GetSkyBoxColor(direction);
+        float metric      = EnvironmentMetric(intensity);
+        float pdf_envmap  = metric / EnvironmentLightingSamples.EnvmapIntegral;
+        float mis_weight  = EnvironmentHeuristic( pdf_diffuse, pdf_envmap );
+
+        // The final weight is "2.0 * mis_weight * intensity / pdf_diffuse * cos * brdf" in which case pdf_diffuse and (cos) eliminate the cosine.
+        // The remaining PI is eliminated by the diffuse BRDF's 1/PI normalization that we're already handling here
+        // The multiplication by 2.0 compensates for us not drawing from both densities, but randomly and evenly choosing one of them.
+              intensity   = 2.0 * mis_weight * intensity;
+              shootRay    = dot(direction, geomNormal) > 0.0;
+    }
+
+    // Sampling the hemisphere around the interpolated normal can generate directions below the geometric surface, so we're guarding against that
+    if (shootRay)
+        CastEnvironment(target, position, direction, firstDirValid ? firstDir : direction, albedo, intensity, weight, depth, transDepth, lightmapMode);
+}
+
+// non-mis path
+void SurfaceSampleEnvironment(int target, vec3 position, vec3 firstDir, vec3 interpNormal, vec3 geomNormal, vec3 albedo, vec2 rand, float weight, int depth, int transDepth, LightmapMode lightmapMode, bool firstDirValid)
+{
+    vec3 b1, b2;
+    CreateOrthoNormalBasis(interpNormal, b1, b2);
+    mat3 onb = mat3(b1, b2, interpNormal);
+
+    // sample hemisphere
+    vec3 direction = onb * HemisphereCosineSample(rand);
+
+    if (dot(direction, geomNormal) > 0.0)
+    {
+        vec3 intensity = GetSkyBoxColor(direction);
+        CastEnvironment(target, position, direction, firstDirValid ? firstDir : direction, albedo, intensity, weight, depth, transDepth, lightmapMode);
+    }
+}
+
+// mis path for sampling the environment according to the one-sample model
+void VolumeSampleEnvironmentMIS(int target, vec3 position, vec3 firstDir, vec3 albedo, vec3 rand, float weight, int depth, int transDepth, bool firstDirValid)
+{
+    // Use one random sample rule instead of estimating both pdfs.
+    // Due to this the chosen path has its mis weight multiplied by 2.0 as we're evenly drawing from the two pdfs.
+    if (rand.z > 0.5)
+    {
+        int   sampleIndex = int(rand.x * float(EnvironmentLightingSamples.NumSamples));
+        vec3  direction   = EnvironmentLightingSamples.Directions[sampleIndex].xyz;
+        float pdf_diffuse = 1.0 / (4.0 * PI);
+        vec3  intensity   = GetSkyBoxColor(direction);
+        float metric      = EnvironmentMetric(intensity);
+        float pdf_envmap  = metric / EnvironmentLightingSamples.EnvmapIntegral;
+        float mis_weight  = EnvironmentHeuristic(pdf_envmap, pdf_diffuse);
+
+        // The final weight is "2.0 * mis_weight * intensity / pdf_environment", but we have pre-calculated "intensity / pdf_environment" on the CPU already
+        // The multiplication by 2.0 compensates for us not drawing from both densities, but randomly and evenly choosing one of them.
+        vec3 weightedIntensity = EnvironmentLightingSamples.WeightedIntensities[sampleIndex].xyz;
+        CastEnvironment(target, position, direction, firstDirValid ? firstDir : direction, albedo, 2.0 * mis_weight * weightedIntensity / PI, weight, depth, transDepth, 0);
+    }
+    else
+    {
+        vec3  direction   = SphereSample(rand.xy);
+        float pdf_diffuse = 1.0 / (4.0 * PI);
+        vec3  intensity   = GetSkyBoxColor(direction);
+        float metric      = EnvironmentMetric(intensity);
+        float pdf_envmap  = metric / EnvironmentLightingSamples.EnvmapIntegral;
+        float mis_weight  = EnvironmentHeuristic(pdf_diffuse, pdf_envmap);
+
+        // The final weight is "2.0 * mis_weight * intensity / pdf_diffuse".
+        // The multiplication by 2.0 compensates for us not drawing from both densities, but randomly and evenly choosing one of them.
+        CastEnvironment(target, position, direction, firstDirValid ? firstDir : direction, albedo, 2.0 * mis_weight * intensity * 4.0, weight, depth, transDepth, 0);
+    }
+}
+
+// non-mis path
+void VolumeSampleEnvironment(int target, vec3 position, vec3 firstDir, vec3 albedo, vec2 rand, float weight, int depth, int transDepth, bool firstDirValid)
+{
+    vec3  direction   = SphereSample(rand);
+    vec3  intensity   = GetSkyBoxColor(direction);
+    float pdf_diffuse = 1.0 / 4.0; // PI in denominator cancels out with SH
+    CastEnvironment(target, position, direction, firstDirValid ? firstDir : direction, albedo, intensity, weight / pdf_diffuse, depth, transDepth, 0);
+}

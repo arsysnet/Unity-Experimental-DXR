@@ -1,0 +1,373 @@
+/*
+    The contents of this file are provided under the terms described in the accompanying License.txt file. Use of this file in any way acknowledges acceptance of these terms.
+    Copyright(c) 2010 - 2017, Imagination Technologies Limited and / or its affiliated group companies. All rights reserved.
+*/
+
+#define ENABLE_CULLING 1
+
+#define DIRECT_MODE_DISABLED 0
+#define DIRECT_MODE_ONLY 1
+#define DIRECT_MODE_GI 2
+
+uniform sampler2D  PositionsTex;
+uniform sampler2D  InterpolatedNormalsTex;
+uniform sampler2D  PlaneNormalsTex;
+uniform sampler2D  DirectLighting;
+uniform sampler2D  PrevComposite;
+uniform sampler2D  ConvergenceMap;
+uniform sampler2D  CullingMap;
+uniform sampler2D  GISamplesMap;
+uniform sampler2D  DirectSamplesMap;
+uniform sampler2D  EnvSamplesMap;
+uniform sampler2D  InstanceTransforms;
+uniform sampler2D  InstanceProperties;
+
+uniform int InstanceTransformsWidth;
+uniform int InstanceTransformsHeight;
+uniform int InstancePropertiesWidth;
+uniform int InstancePropertiesHeight;
+uniform int TransformOffset;
+uniform int OutputRayCount;
+uniform int DirectSamplesPerPass;
+uniform int GISamplesPerPass;
+uniform int EnvSamplesPerPass;
+uniform int DirectMaxSamples;
+uniform int GIMaxSamples;
+uniform int EnvMaxSamples;
+uniform float PushOff;
+uniform int SupersamplingMultiplier;
+uniform float OneOverSupersamplingMultiplier;
+uniform LightmapMode OutputlightmapMode;
+uniform int LODMask;
+uniform int LODGroupId;
+uniform int DoShadowMask;
+
+void setup()
+{
+    rl_OutputRayCount = OutputRayCount;
+}
+
+mat4 GetInstanceTransform(int instanceIndex, out mat4 inv)
+{
+    int kPixelsPerInstance = 8;
+    int linearIdx = instanceIndex * kPixelsPerInstance;
+    int y = int(linearIdx/InstanceTransformsWidth);
+    int x = linearIdx - y*InstanceTransformsWidth;
+    float xTex = float(x)+0.5;
+    float yTex = (float(y)+0.5)/float(InstanceTransformsHeight);
+    float w = float(InstanceTransformsWidth);
+
+    vec2 uv1 = vec2(xTex/w, yTex);
+    vec2 uv2 = vec2((xTex + 1.0)/w, yTex);
+    vec2 uv3 = vec2((xTex + 2.0)/w, yTex);
+    vec2 uv4 = vec2((xTex + 3.0)/w, yTex);
+
+    vec4 r1 = texture2D(InstanceTransforms, uv1);
+    vec4 r2 = texture2D(InstanceTransforms, uv2);
+    vec4 r3 = texture2D(InstanceTransforms, uv3);
+    vec4 r4 = texture2D(InstanceTransforms, uv4);
+
+    // load the inverse to transform normals
+    float inverse_offset = 4.0 / w;
+    vec2 iuv1 = vec2(uv1.x + inverse_offset, uv1.y);
+    vec2 iuv2 = vec2(uv2.x + inverse_offset, uv2.y);
+    vec2 iuv3 = vec2(uv3.x + inverse_offset, uv3.y);
+    vec2 iuv4 = vec2(uv4.x + inverse_offset, uv4.y);
+
+    inv[0] = texture2D(InstanceTransforms, iuv1);
+    inv[1] = texture2D(InstanceTransforms, iuv2);
+    inv[2] = texture2D(InstanceTransforms, iuv3);
+    inv[3] = texture2D(InstanceTransforms, iuv4);
+
+    return mat4(r1,r2,r3,r4);
+}
+
+vec4 GetInstanceProperties(int instanceIndex)
+{
+    int y = int(instanceIndex / InstancePropertiesWidth);
+    int x = instanceIndex - y*InstancePropertiesWidth;
+    float xTex = (float(x) + 0.5) / float(InstancePropertiesWidth);
+    float yTex = (float(y) + 0.5) / float(InstancePropertiesHeight);
+    return texture2D(InstanceProperties, vec2(xTex, yTex));
+}
+
+bool GetReceiveShadows(vec4 instanceProperties)
+{
+    // Keep in sync with data generation in PVRContextManager::SetInstanceProperties
+    return instanceProperties.x > 0.5;
+}
+
+int GetLODGroupId(vec4 instanceProperties)
+{
+    // Keep in sync with data generation in PVRContextManager::SetInstanceLODData
+    return ((instanceProperties.y < 0.0) ? -1 : int(instanceProperties.y));
+}
+
+int GetLODMask(vec4 instanceProperties)
+{
+    // Keep in sync with data generation in PVRContextManager::SetInstanceLODData
+    return int(instanceProperties.z);
+}
+
+vec2 GetSampleUV (vec2 frameCoord, vec2 frameSize, int sampleStartIndex)
+{
+    int supersamplingMultiplierSquared = SupersamplingMultiplier * SupersamplingMultiplier;
+    int sampleIndex = sampleStartIndex % supersamplingMultiplierSquared;
+    int y = int(floor(float(sampleIndex) * OneOverSupersamplingMultiplier));
+    int x = sampleIndex - y * SupersamplingMultiplier;
+
+    return (frameCoord - vec2(0.5, 0.5) + (0.5 + vec2(x, y)) * OneOverSupersamplingMultiplier) / frameSize;
+}
+
+// Grab the GBuffer data and transform to world space
+bool GetGBufferDataWS(vec2 uv, out vec3 position, out vec3 smoothNormal, out vec3 planeNormal, out int instanceIndex)
+{
+    vec4 interpObjNormal = texture2D(InterpolatedNormalsTex, uv);
+
+    if(interpObjNormal.w < 0.0)
+        return false;
+
+    vec4 planeObjNormal = texture2D(PlaneNormalsTex, uv);
+    vec4 objPosition = texture2D(PositionsTex, uv);
+    instanceIndex = int(floor(objPosition.w)) + TransformOffset;
+
+    mat4 transform_inverse;
+    mat4 transform = GetInstanceTransform(instanceIndex, transform_inverse);
+
+    // have to multiply with the transposed inverse, so invert multiplication order
+    smoothNormal = normalize(mat3(transform_inverse) * interpObjNormal.xyz);
+    planeNormal = normalize(mat3(transform_inverse) * planeObjNormal.xyz);
+
+    position = (vec4(objPosition.xyz, 1.0) * transform).xyz;
+
+    return true;
+}
+
+void GISampling(int passRayCount, int currentRayCount, int numRays, LightmapMode lightmapMode)
+{
+    int supersamplingMultiplierSquared = SupersamplingMultiplier * SupersamplingMultiplier;
+    vec2 ssFrameSize = rl_FrameSize.xy * vec2(SupersamplingMultiplier, SupersamplingMultiplier);
+    int passRays = 0;
+
+    for(int i = 0; i < passRayCount; ++i)
+    {
+        int sampleIndex = currentRayCount + i;
+        vec2 gbufferUV = GetSampleUV (rl_FrameCoord.xy, rl_FrameSize.xy, sampleIndex);
+
+        // Shift is different per supersample, this makes a unique scramble per subsample. This is needed to ensure a unique Sobol sequence per subsample. This is white noise decorrelation.
+        int scramble = GetScreenCoordHash(gbufferUV*ssFrameSize);
+        int base = scramble % IntegratorSamples.numGoldenSamples; // We do this as it is not safe to directly add to a scramble value generated by GetScreenCoordHash as we could then go above INT_MAX and the modulo could return a negative value.
+        int dim0_rnd = (base + 0) % IntegratorSamples.numGoldenSamples;
+        int dim1_rnd = (base + 1) % IntegratorSamples.numGoldenSamples;
+        int dim2_rnd = (base + 2) % IntegratorSamples.numGoldenSamples;
+        vec3 cpShift = vec3(IntegratorSamples.goldenSamples[dim0_rnd], IntegratorSamples.goldenSamples[dim1_rnd], IntegratorSamples.goldenSamples[dim2_rnd]);
+
+        // Get GBuffer data
+        vec3 position;
+        vec3 smoothNormal;
+        vec3 planeNormal;
+        int instanceIndex;
+        if (!GetGBufferDataWS(gbufferUV, position, smoothNormal, planeNormal, instanceIndex))
+            continue;
+
+        // LOD handling
+        vec4 instanceProperties = GetInstanceProperties(instanceIndex);
+        int lodMask = GetLODMask(instanceProperties);
+        int lodGroupId = GetLODGroupId(instanceProperties);
+        if ((LODGroupId != lodGroupId) || (LODMask != lodMask))
+            continue;
+
+        vec3 positionPushedOff = position + planeNormal * PushOff;
+
+        // frame of reference for sampling hemisphere
+        vec3 b1;
+        vec3 b2;
+        CreateOrthoNormalBasis(smoothNormal, b1, b2);
+
+        // sample hemisphere
+        int subSampleIndex = sampleIndex / supersamplingMultiplierSquared; // This correctly demangles the global index into a per subsample index
+        vec2 rnd = fract(vec2(SobolSample(subSampleIndex, 0, 0), SobolSample(subSampleIndex, 1, 0)) + cpShift.xy);
+        vec3 hamDir = HemisphereCosineSample(rnd);
+        hamDir = hamDir.x*b1 + hamDir.y*b2 + hamDir.z*smoothNormal;
+
+        passRays++;
+
+        float dotVal = dot(hamDir, planeNormal);
+        if (dotVal <= 0.0 || isnan(dotVal))
+            continue;
+
+        createRay();
+        rl_OutRay.origin           = positionPushedOff;
+        rl_OutRay.direction        = hamDir;
+        rl_OutRay.color            = vec4(0.0); // unused, because we're not shooting against lights
+        rl_OutRay.probeDir         = normalize(hamDir);
+        rl_OutRay.defaultPrimitive = GetEnvPrimitive();
+        rl_OutRay.renderTarget     = GI_BUFFER;
+        rl_OutRay.isOutgoing       = true;
+        rl_OutRay.sampleIndex      = sampleIndex;
+        rl_OutRay.cpShift          = cpShift;
+        rl_OutRay.rayClass         = GI_RAY_CLASS;
+        rl_OutRay.depth            = 0;
+        rl_OutRay.weight           = 1.0;
+        rl_OutRay.occlusionTest    = false;
+        rl_OutRay.albedo           = vec3(1.0);
+        rl_OutRay.sameOriginCount  = 0;
+        rl_OutRay.transmissionDepth= 0;
+        rl_OutRay.lightmapMode     = lightmapMode;
+        emitRayWithoutDifferentials();
+    }
+
+    accumulate(GI_SAMPLES_BUFFER, float(passRays));
+}
+
+void DirectSampling(int passRayCount, int currentRayCount, int numRays, LightmapMode lightmapMode, bool shadowmask)
+{
+    int supersamplingMultiplierSquared = SupersamplingMultiplier * SupersamplingMultiplier;
+    vec2 ssFrameSize = rl_FrameSize.xy * vec2(SupersamplingMultiplier, SupersamplingMultiplier);
+    int passRays = 0;
+
+    for(int i = 0; i < passRayCount; ++i)
+    {
+        int sampleIndex = currentRayCount + i;
+        vec2 gbufferUV = GetSampleUV(rl_FrameCoord.xy, rl_FrameSize.xy, sampleIndex);
+
+        // Shift is different per supersample, this makes a unique scramble per subsample. This is needed to ensure a unique Sobol sequence per subsample. This is white noise decorrelation.
+        int scramble = GetScreenCoordHash(gbufferUV*ssFrameSize);
+        int base = scramble % IntegratorSamples.numGoldenSamples; // We do this as it is not safe to directly add to a scramble value generated by GetScreenCoordHash as we could then go above INT_MAX and the modulo could return a negative value.
+        int dim0_rnd = (base + 0) % IntegratorSamples.numGoldenSamples;
+        int dim1_rnd = (base + 1) % IntegratorSamples.numGoldenSamples;
+        int dim2_rnd = (base + 2) % IntegratorSamples.numGoldenSamples;
+        vec3 cpShift = vec3(IntegratorSamples.goldenSamples[dim0_rnd], IntegratorSamples.goldenSamples[dim1_rnd], IntegratorSamples.goldenSamples[dim2_rnd]);
+
+        // Get GBuffer data
+        vec3 position;
+        vec3 smoothNormal;
+        vec3 planeNormal;
+        int instanceIndex;
+        if (!GetGBufferDataWS(gbufferUV, position, smoothNormal, planeNormal, instanceIndex))
+            continue;
+
+        // LOD handling
+        vec4 instanceProperties = GetInstanceProperties(instanceIndex);
+        int lodMask = GetLODMask(instanceProperties);
+        int lodGroupId = GetLODGroupId(instanceProperties);
+        if ((LODGroupId != lodGroupId) || (LODMask != lodMask))
+            continue;
+        bool receiveShadows = GetReceiveShadows(instanceProperties);
+
+        passRays++;
+        vec3 positionPushedOff = position + planeNormal * PushOff;
+
+        int subSampleIndex = sampleIndex / supersamplingMultiplierSquared; // This correctly demangles the global index into a per subsample index
+        vec2 rnd = fract(vec2(SobolSample(subSampleIndex, 0, 0), SobolSample(subSampleIndex, 1, 0)) + cpShift.xy);
+
+        DoShadows(positionPushedOff, smoothNormal, vec3(1.0), GI_DIRECT_BUFFER, rnd, vec3(0.0), lightmapMode, false, false, OCCLUSIONMODE_DIRECT, vec4(-1.0), 1.0, receiveShadows);
+        if (shadowmask)
+            DoShadows(positionPushedOff, smoothNormal, vec3(1.0), SHADOW_MASK_BUFFER, rnd, vec3(0.0), LIGHTMAPMODE_NOTUSED, false, false, OCCLUSIONMODE_SHADOWMASK, vec4(-1.0), 1.0, receiveShadows);
+    }
+
+    accumulate(GI_DIRECT_BUFFER, vec4(0.0, 0.0, 0.0, passRays));
+    accumulate(DIRECT_SAMPLES_BUFFER, float(passRays));
+}
+
+
+void EnvironmentSampling(int passRayCount, int currentRayCount, LightmapMode lightmapMode)
+{
+    if (!SampleDirectEnvironment())
+    {
+        accumulate(ENV_SAMPLES_BUFFER, float(passRayCount));
+        return;
+    }
+
+    int  passRays     = 0;
+    int  ssSquared    = SupersamplingMultiplier * SupersamplingMultiplier;
+    vec2 ssFrameSize  = rl_FrameSize.xy * vec2(SupersamplingMultiplier, SupersamplingMultiplier);
+    bool useMIS       = UseEnvironmentMIS();
+
+    for (int i = 0; i < passRayCount; ++i)
+    {
+        int sampleIndex = currentRayCount + i;
+
+        // Get position and normal for a sample position
+        vec3 position, interpNormal, geomNormal;
+        vec3 rand;
+        {
+
+            // sample gbuffer data
+            vec2 gbufferUV = GetSampleUV(rl_FrameCoord.xy, rl_FrameSize.xy, sampleIndex);
+            int  instanceIndex;
+
+            if (!GetGBufferDataWS(gbufferUV, position, interpNormal, geomNormal, instanceIndex))
+                continue;
+
+            // LOD handling (need to do this per sample, as different instances could possibly by mapped to the same lightmap texel)
+            vec4 instanceProperties = GetInstanceProperties(instanceIndex);
+            int  lodMask            = GetLODMask(instanceProperties);
+            int  lodGroupId         = GetLODGroupId(instanceProperties);
+            if ((LODGroupId != lodGroupId) || (LODMask != lodMask))
+                continue;
+
+            position += geomNormal * PushOff;
+
+            // create 2d random variable
+            int  scramble       = GetScreenCoordHash(gbufferUV*ssFrameSize);
+            int  base           = scramble   % IntegratorSamples.numGoldenSamples; // We do this as it is not safe to directly add to a scramble value generated by GetScreenCoordHash as we could then go above INT_MAX and the modulo could return a negative value.
+            int  dim0_rnd       = (base + 0) % IntegratorSamples.numGoldenSamples;
+            int  dim1_rnd       = (base + 1) % IntegratorSamples.numGoldenSamples;
+            int  dim2_rnd       = (base + 2) % IntegratorSamples.numGoldenSamples;
+            vec3 cpShift        = vec3(IntegratorSamples.goldenSamples[dim0_rnd], IntegratorSamples.goldenSamples[dim1_rnd], IntegratorSamples.goldenSamples[dim2_rnd]);
+            int  subSampleIndex = sampleIndex / ssSquared; // This correctly demangles the global index into a per subsample index
+                 rand           = fract(vec3(SobolSample(subSampleIndex, 0, 0), SobolSample(subSampleIndex, 1, 0), SobolSample(subSampleIndex, 2, 0)) + cpShift);
+        }
+
+        if (useMIS)
+            SurfaceSampleEnvironmentMIS(ENV_BUFFER, position, vec3(0.0), interpNormal, geomNormal, vec3(1.0, 1.0, 1.0), rand, 1.0, 0, 0, lightmapMode, false);
+        else
+            SurfaceSampleEnvironment(ENV_BUFFER, position, vec3(0.0), interpNormal, geomNormal, vec3(1.0, 1.0, 1.0), rand.xy, 1.0, 0, 0, lightmapMode, false);
+
+        passRays++;
+    }
+    accumulate(ENV_SAMPLES_BUFFER, float(passRays));
+}
+
+void main()
+{
+    vec2  frameCoord  = rl_FrameCoord.xy / rl_FrameSize.xy;
+
+
+#if ENABLE_CULLING
+    vec4 cull = texture2D(CullingMap, frameCoord);
+    if(cull.r <= 0.0)
+        return;
+#endif
+    int curGISamples = int(texture2D(GISamplesMap, frameCoord).x);
+    int curDirectSamples = int(texture2D(DirectSamplesMap, frameCoord).x);
+    int curEnvSamples = int(texture2D(EnvSamplesMap, frameCoord).x);
+
+    int conv = int(texture2D(ConvergenceMap, frameCoord).x * 255.0);
+    // Check against midpoints between values defined in the convergence job.
+    bool isDirectConverged = (conv & PVR_CONVERGED_DIRECT) != 0;
+    bool isGIConverged     = (conv & PVR_CONVERGED_GI)     != 0;
+    bool isEnvConverged    = (conv & PVR_CONVERGED_ENV)    != 0;
+
+    if (!isGIConverged)
+    {
+        // Avoid overshooting GI samples
+        int clampedGIsamplesPerPass = min (max(0, GIMaxSamples - curGISamples), GISamplesPerPass);
+        GISampling(clampedGIsamplesPerPass, curGISamples, GIMaxSamples, OutputlightmapMode);
+    }
+
+    if (!isDirectConverged)
+    {
+        // Avoid overshooting direct samples
+        int clampedDirectsamplesPerPass = min(max(0, DirectMaxSamples - curDirectSamples), DirectSamplesPerPass);
+        DirectSampling(clampedDirectsamplesPerPass, curDirectSamples, DirectMaxSamples, OutputlightmapMode, DoShadowMask == 1);
+    }
+
+    if (!isEnvConverged)
+    {
+        int clampedEnvSamplesPerPass = min(max(0, EnvMaxSamples - curEnvSamples), EnvSamplesPerPass);
+        EnvironmentSampling(clampedEnvSamplesPerPass, curEnvSamples, OutputlightmapMode);
+
+    }
+}

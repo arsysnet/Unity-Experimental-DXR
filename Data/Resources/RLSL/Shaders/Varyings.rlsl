@@ -1,0 +1,8 @@
+/*
+    The contents of this file are provided under the terms described in the accompanying License.txt file. Use of this file in any way acknowledges acceptance of these terms.
+    Copyright(c) 2010 - 2017, Imagination Technologies Limited and / or its affiliated group companies. All rights reserved.
+*/
+
+varying vec3 NormalVarying;
+varying vec2 TexCoord0Varying;
+varying vec2 TexCoord1Varying;

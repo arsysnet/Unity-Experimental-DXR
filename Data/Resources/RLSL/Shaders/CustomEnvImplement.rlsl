@@ -1,0 +1,7 @@
+// Even if not used this has to be here as the same block definition is used for all the environment shaders.
+
+void main()
+{
+    float luminance = unityLinearLuminance (rl_InRay.color.xyz);
+    accumulate(vec4(luminance, luminance, luminance, 0.0));
+}

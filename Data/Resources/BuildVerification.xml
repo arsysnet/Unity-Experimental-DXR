@@ -1,0 +1,4 @@
+<unsupported>
+<assembly name="Mono.WebBrowser.dll" platform="iPhone"/>
+<assembly name="System.Windows.Forms.dll" platform="*"/>
+</unsupported>

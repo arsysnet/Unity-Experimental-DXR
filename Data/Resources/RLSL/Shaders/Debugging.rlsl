@@ -1,0 +1,74 @@
+/*
+    The contents of this file are provided under the terms described in the accompanying License.txt file. Use of this file in any way acknowledges acceptance of these terms.
+    Copyright(c) 2010 - 2017, Imagination Technologies Limited and / or its affiliated group companies. All rights reserved.
+*/
+
+uniformblock DebugProperties
+{
+    int ActiveDebugPixelX;
+    int ActiveDebugPixelY;
+    int InteractiveModeEnabled;
+};
+
+#define ERROR_CODE   1
+
+#define ENABLE_DEBUGGING 0
+#define ENABLE_INTERACTIVE_MODE 1
+
+#if ENABLE_INTERACTIVE_MODE
+bool InteractiveModeEnabled()
+{
+    return DebugProperties.InteractiveModeEnabled!=0;
+}
+#else
+#define InteractiveModeEnabled() (false)
+#endif
+
+bool IsDebugRow(float offset)
+{
+    return abs(rl_FrameCoord.y - (float(DebugProperties.ActiveDebugPixelY)+0.5))<=offset;
+}
+
+bool IsDebugColumn(float offset)
+{
+    return abs(rl_FrameCoord.x - (float(DebugProperties.ActiveDebugPixelX)+0.5))<=offset;
+}
+
+bool IsDebugPixel(float offset)
+{
+    return (IsDebugRow(offset) && IsDebugColumn(offset));
+}
+
+bool DrawDebugCrosshair(float offset)
+{
+#if ENABLE_DEBUGGING
+    if(IsDebugPixel(offset))
+    {
+        accumulate (vec3(1,0,0));
+        return true;
+    }
+
+    if(IsDebugColumn(0.0))
+        Accumulate(vec3(0,1,0));
+    if(IsDebugRow(0.0))
+        Accumulate(vec3(0,0,1));
+#endif
+    return false;
+
+}
+
+
+#if ENABLE_DEBUGGING
+
+#define DEBUG_ALWAYS(_x, _y)     debug(_x,_y)
+#define DEBUG(_x, _y)            if(IsDebugPixel(0.0))       debug(_x,_y)
+#define CROSSHAIR_DEBUG(_x, _y)  if(DrawDebugCrosshair(0.0)) debug(_x, _y)
+
+
+#else
+
+#define DEBUG_ALWAYS(_x, _y)
+#define DEBUG(_x, _y)
+#define CROSSHAIR_DEBUG(_x, _y)
+
+#endif

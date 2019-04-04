@@ -1,0 +1,518 @@
+/*
+    The contents of this file are provided under the terms described in the accompanying License.txt file. Use of this file in any way acknowledges acceptance of these terms.
+    Copyright(c) 2010 - 2017, Imagination Technologies Limited and / or its affiliated group companies. All rights reserved.
+*/
+
+
+#define OcclusionMode int
+#define OCCLUSIONMODE_DIRECT           0
+#define OCCLUSIONMODE_SHADOWMASK       1
+#define OCCLUSIONMODE_PROBEOCCLUSION   2
+#define OCCLUSIONMODE_DIRECT_ON_BOUNCE 3 // allows to skip the check whether to do direct
+
+uniformblock Lights
+{
+    // Per light data
+    // Bytes per light: 112 = 3 * sizeof(int) + 3 * sizeof(vec3) + 4 * sizeof(vec4)
+    // MB for all lights: 3.5 = (112 * MAX_LIGHTS) / 1024^2
+    int       LightTypes[MAX_LIGHTS];
+    int       LightShadowMaskChannels[MAX_LIGHTS];
+    int       LightFalloffIndex[MAX_LIGHTS];
+    vec3      LightPositions[MAX_LIGHTS];
+    vec3      LightDirections[MAX_LIGHTS];
+    vec3      LightTangents[MAX_LIGHTS];
+    vec4      LightProperties0[MAX_LIGHTS];
+    vec4      LightProperties1[MAX_LIGHTS];
+    vec4      LightProperties2[MAX_LIGHTS];
+    vec4      LightColors[MAX_LIGHTS];
+
+    // Per region data
+    int       NumLights[MAX_LIGHT_REGIONS];
+
+    // Global data
+    int       MaxSoftShadowLights;
+    int       MaxHardShadowLights;
+    int       MaxLights;
+    vec3      SceneBoundsMin;
+    vec3      SceneBoundsMax;
+    vec3      GridRegionSize;
+    ivec3     GridDims;
+    int       GridLength;
+    int       RaysPerSoftShadow;
+    int       TotalLights;
+    vec2      LightIndicesRes;
+};
+
+uniformblock LightInfo
+{
+    vec4      AmbientSH[7];
+    float     AmbientIntensity;
+    primitive LightPrimitive;
+    primitive EnvPrimitive;
+    float     AngularFalloffTable[MAX_ANGULAR_FALLOFF_TABLE_LENGTH];
+    int       AngularFalloffTableLength;
+};
+
+uniformblock FalloffInfo
+{
+    sampler2D LightFalloff;
+    int       LightFalloffWidth;
+    int       LightFalloffHeight;
+};
+
+uniformblock AOInfo
+{
+    float aoMaxDistance;
+    int aoEnabled;
+};
+
+uniform sampler2D LightIndices;
+
+float SampleFalloff(int falloffIndex, float normalizedSamplePosition)
+{
+    int y = min(falloffIndex, FalloffInfo.LightFalloffHeight-1);
+    int sampleCount = FalloffInfo.LightFalloffWidth;
+    float index = normalizedSamplePosition*float(sampleCount);
+
+    // compute the index pair
+    int loIndex = min(int(index), int(sampleCount - 1));
+    int hiIndex = min(int(index) + 1, int(sampleCount - 1));
+    float hiFraction = (index - float(loIndex));
+
+    float yTex = (float(y) + 0.5) / float(FalloffInfo.LightFalloffHeight);
+    float xTexLo = (float(loIndex) + 0.5) / float(FalloffInfo.LightFalloffWidth);
+    float xTexHi = (float(hiIndex) + 0.5) / float(FalloffInfo.LightFalloffWidth);
+
+    vec2 uv1 = vec2(xTexLo, yTex);
+    vec2 uv2 = vec2(xTexHi, yTex);
+
+    vec4 sampleLo = texture2D(FalloffInfo.LightFalloff, uv1);
+    vec4 sampleHi = texture2D(FalloffInfo.LightFalloff, uv2);
+
+    // do the lookup
+    return (1.0 - hiFraction) * sampleLo.x + hiFraction * sampleHi.x;
+}
+
+// This code must be kept in sync with FalloffLUT.cpp::LookupFalloffLUT
+float LookupAngularFalloffLUT(float angularScale)
+{
+    int sampleCount = LightInfo.AngularFalloffTableLength;
+
+    //======================================
+    // light distance falloff lookup:
+    //   d = Max(0, distance - m_Radius) / (m_CutOff - m_Radius)
+    //   index = (g_SampleCount - 1) / (1 + d * d * (g_SampleCount - 2))
+    float tableDist = max(angularScale, 0.0);
+    float index = float(sampleCount - 1) / (1.0 + tableDist * tableDist * float(sampleCount - 2));
+
+    // compute the index pair
+    int loIndex = min(int(index), int(sampleCount - 1));
+    int hiIndex = min(int(index) + 1, int(sampleCount - 1));
+    float hiFraction = (index - float(loIndex));
+
+    // do the lookup
+    return (1.0 - hiFraction) * LightInfo.AngularFalloffTable[loIndex] + hiFraction * LightInfo.AngularFalloffTable[hiIndex];
+}
+
+primitive GetLightPrimitive()
+{
+    return LightInfo.LightPrimitive;
+}
+
+primitive GetEnvPrimitive()
+{
+    return LightInfo.EnvPrimitive;
+}
+
+int GetLightIndex(int regionIdx, int lightIdx)
+{
+    vec2 uv = vec2(((float(lightIdx) + 0.5) / float(Lights.LightIndicesRes.x)), ((float(regionIdx) + 0.5) / float(Lights.LightIndicesRes.y)));
+
+    float idx = texture2D(LightIndices, uv).x;
+
+    // Integers up to 2^24 can be accurately represented as floats,
+    // so a simple truncating conversion to int below is fine.
+    return clamp(int(idx), 0, Lights.TotalLights - 1);
+}
+
+ivec3 GetRegionLocContaining(vec3 point)
+{
+    vec3 p = point-Lights.SceneBoundsMin;
+
+
+    return ivec3(int(p.x/Lights.GridRegionSize.x), int(p.y/Lights.GridRegionSize.y), int(p.z/Lights.GridRegionSize.z));
+}
+
+int GetRegionIdx(ivec3 loc)
+{
+    return 1 + loc.x + loc.y*Lights.GridDims.x + loc.z * Lights.GridDims.x * Lights.GridDims.y;
+}
+
+int GetRegionContaining(vec3 point)
+{
+    return GetRegionIdx(GetRegionLocContaining(point));
+}
+
+int GetMaxLights()
+{
+    return Lights.MaxLights;
+}
+
+int GetNumLights(int regionIdx)
+{
+    return Lights.NumLights[regionIdx];
+}
+int GetMaxHardShadowLights()
+{
+    return Lights.MaxHardShadowLights;
+}
+int GetMaxSoftShadowLights()
+{
+    return Lights.MaxSoftShadowLights;
+}
+
+int GetRaysPerSoftShadow()
+{
+    return Lights.RaysPerSoftShadow;
+}
+
+vec3 GetLightPosition(int lightIdx)
+{
+    return Lights.LightPositions[lightIdx];
+}
+vec4 GetLightProperties0(int lightIdx)
+{
+    return Lights.LightProperties0[lightIdx];
+}
+vec4 GetLightProperties1(int lightIdx)
+{
+    return Lights.LightProperties1[lightIdx];
+}
+
+float GetShadowType(int lightIdx)
+{
+    return Lights.LightProperties0[lightIdx].w;
+
+}
+int  GetLightType(int lightIdx)
+{
+    return Lights.LightTypes[lightIdx];
+}
+int  GetShadowMaskChannel(int lightIdx)
+{
+    return Lights.LightShadowMaskChannels[lightIdx];
+}
+
+bool GetLightmapsDoDirect(int lightIdx)
+{
+    return Lights.LightProperties1[lightIdx].w != 0.0;
+}
+
+bool GetLightProbesDoDirect(int lightIdx)
+{
+    return Lights.LightProperties2[lightIdx].w != 0.0;
+}
+
+void GetJitteredLightVec(inout vec3 lightVec, int lightIdx, int rayIdx, vec3 lightOffset, mat3 lightBasis);
+
+bool IsNormalValid(vec3 normal)
+{
+    return normal != vec3(0.0);
+}
+
+bool CalculateDirectionalLightColor(int lightIdx, vec3 normal, inout vec3 colorOut, inout vec3 lightVecOut, inout float maxTOut, OcclusionMode occlusionMode)
+{
+    bool hasNormal = IsNormalValid(normal);
+
+    float dotVal = hasNormal ? dot(normal, Lights.LightDirections[lightIdx]) : 1.0;
+    if (dotVal <= 0.0 || isnan(dotVal))
+        return false;
+
+    colorOut *= dotVal;
+    lightVecOut = Lights.LightDirections[lightIdx];
+    maxTOut = 1e27;
+
+    if (occlusionMode == OCCLUSIONMODE_SHADOWMASK)
+    {
+        int shadowMaskChannel = GetShadowMaskChannel(lightIdx);
+        vec4 samples = vec4(0.0, 0.0, 0.0, 0.0);
+        samples[shadowMaskChannel] = 1.0;
+        accumulate(SHADOW_MASK_SAMPLE_BUFFER, samples);
+    }
+
+    return true;
+}
+
+bool CalculatePointLightColor(int lightIdx, vec3 normal, vec3 position, inout vec3 colorOut, inout vec3 lightVecOut, inout float maxTOut, OcclusionMode occlusionMode)
+{
+    bool hasNormal = IsNormalValid(normal);
+
+    maxTOut = 1e27;
+
+    float range = Lights.LightProperties0[lightIdx].x;
+    vec3 lightPos = Lights.LightPositions[lightIdx];
+
+    vec3 toLight = lightPos - position;
+    float len = length(toLight);
+    float dotVal = hasNormal ? max(dot(normal, toLight / len), 0.0) : 1.0;
+    if (dotVal <= 0.0 || isnan(dotVal))
+        return false;
+    colorOut *= dotVal;
+    vec3 lightVector = toLight / len;
+
+    float distScale = len / range;
+    if (distScale > 1.0)
+        return false;
+
+    float falloff = SampleFalloff(Lights.LightFalloffIndex[lightIdx], distScale);
+    colorOut *= falloff;
+
+    lightVecOut = lightVector;
+    maxTOut = len;
+
+    // CalculateSpotLightColor also uses this function, so test the type.
+    if (occlusionMode == OCCLUSIONMODE_SHADOWMASK && GetLightType(lightIdx) == LIGHT_POINT)
+    {
+        int shadowMaskChannel = GetShadowMaskChannel(lightIdx);
+        vec4 samples = vec4(0.0, 0.0, 0.0, 0.0);
+        samples[shadowMaskChannel] = 1.0;
+        accumulate(SHADOW_MASK_SAMPLE_BUFFER, samples);
+    }
+
+    return true;
+}
+
+bool CalculateSpotLightColor(int lightIdx, vec3 normal, vec3 position, inout vec3 colorOut, inout vec3 lightVecOut, inout float maxTOut, OcclusionMode occlusionMode)
+{
+    CalculatePointLightColor(lightIdx, normal, position, colorOut, lightVecOut, maxTOut, occlusionMode);
+
+    float cosConeAng = Lights.LightProperties0[lightIdx].y;
+    float invCosConeAng = Lights.LightProperties0[lightIdx].z;
+    float dval = dot(lightVecOut, Lights.LightDirections[lightIdx]);
+
+    if (dval < cosConeAng)
+        return false;
+
+    float angScale = (dval-cosConeAng)/invCosConeAng;
+    float angFalloff = 1.0 - LookupAngularFalloffLUT (angScale);
+    colorOut *= angFalloff;
+
+    if (occlusionMode == OCCLUSIONMODE_SHADOWMASK)
+    {
+        int shadowMaskChannel = GetShadowMaskChannel(lightIdx);
+        vec4 samples = vec4(0.0, 0.0, 0.0, 0.0);
+        samples[shadowMaskChannel] = 1.0;
+        accumulate(SHADOW_MASK_SAMPLE_BUFFER, samples);
+    }
+
+    return true;
+}
+
+void CreateOrthoNormalBasis(vec3 n, out vec3 tangent, out vec3 bitangent);
+
+#define PI 3.14159265359
+
+vec3 SphQuadSample(vec3 s, vec3 ex, vec3 ey, vec3 o, float u, float v, inout float solidAngle)
+{
+    float exl = length(ex);
+    float eyl = length(ey);
+    // compute local reference system 'R'
+    vec3 x = ex / exl;
+    vec3 y = ey / eyl;
+    vec3 z = cross(x, y);
+    // compute rectangle coords in local reference system
+    vec3 d = s - o;
+    float z0 = dot(d, z);
+    // flip 'z' to make it point against 'Q'
+    if (z0 > 0.0) {
+        z *= -1.0;
+        z0 *= -1.0;
+    }
+    float z0sq = z0 * z0;
+    float x0 = dot(d, x);
+    float y0 = dot(d, y);
+    float x1 = x0 + exl;
+    float y1 = y0 + eyl;
+    float y0sq = y0 * y0;
+    float y1sq = y1 * y1;
+    // create vectors to four vertices
+    vec3 v00 = vec3(x0, y0, z0);
+    vec3 v01 = vec3(x0, y1, z0);
+    vec3 v10 = vec3(x1, y0, z0);
+    vec3 v11 = vec3(x1, y1, z0);
+    // compute normals to edges
+    vec3 n0 = normalize(cross(v00, v10));
+    vec3 n1 = normalize(cross(v10, v11));
+    vec3 n2 = normalize(cross(v11, v01));
+    vec3 n3 = normalize(cross(v01, v00));
+    // compute internal angles (gamma_i)
+    float g0 = acos(-dot(n0,n1));
+    float g1 = acos(-dot(n1,n2));
+    float g2 = acos(-dot(n2,n3));
+    float g3 = acos(-dot(n3,n0));
+    // compute predefined constants
+    float b0 = n0.z;
+    float b1 = n2.z;
+    float b0sq = b0 * b0;
+    float k = 2.0*PI - g2 - g3;
+    // compute solid angle from internal angles
+    float S = g0 + g1 - k;
+    solidAngle = S;
+
+    // 1. compute 'cu'
+    float au = u * S + k;
+    float fu = (cos(au) * b0 - b1) / sin(au);
+    float cu = 1.0/sqrt(fu*fu + b0sq) * (fu>0.0 ? 1.0 : -1.0);
+    cu = clamp(cu, -1.0, 1.0); // avoid NaNs
+    // 2. compute 'xu'
+    float xu = -(cu * z0) / sqrt(1.0 - cu*cu);
+    xu = clamp(xu, x0, x1); // avoid Infs
+    // 3. compute 'yv'
+    float d_ = sqrt(xu*xu + z0sq);
+    float h0 = y0 / sqrt(d_*d_ + y0sq);
+    float h1 = y1 / sqrt(d_*d_ + y1sq);
+    float hv = h0 + v * (h1-h0), hv2 = hv*hv;
+    float eps = 0.0001;
+    float yv = (hv2 < 1.0-eps) ? (hv*d_)/sqrt(1.0-hv2) : y1;
+
+    // 4. transform (xu,yv,z0) to world coords
+    return (o + xu*x + yv*y + z0*z);
+}
+
+//Do the lighting calculation for the provided position+normal
+bool CalculateAreaLightColor(int lightIdx, vec3 normal, vec3 position, vec2 rnd, inout vec3 colorOut, inout vec3 lightVecOut, inout float maxTOut, OcclusionMode occlusionMode)
+{
+    vec3 lightDir = normalize(Lights.LightDirections[lightIdx]);
+    vec3 lightCenter = Lights.LightPositions[lightIdx];
+    vec3 texelToLight = position-lightCenter;
+
+    // light backfacing?
+    if(dot(lightDir, texelToLight) > 0.0)
+        return false;
+
+    // range check
+    float range = Lights.LightProperties0[lightIdx].x;
+    float ttlDistSq = dot( texelToLight, texelToLight );
+    if (ttlDistSq > (range*range))
+        return false;
+
+    float width = Lights.LightProperties1[lightIdx].y;
+    float height = Lights.LightProperties1[lightIdx].z;
+
+    // solid angle sampling
+    vec3 lightTan = normalize(Lights.LightTangents[lightIdx]);
+    vec3 lightBitan = cross(lightDir,lightTan);
+    vec3 s = lightCenter - 0.5 * width * lightBitan- 0.5 * height * lightTan;
+    float solidAngle;
+    lightVecOut = SphQuadSample(s, lightTan * height, lightBitan * width, position, rnd.x, rnd.y, solidAngle)-position;
+    maxTOut = length(lightVecOut);
+    lightVecOut /= maxTOut;
+
+    // evaluation (Note: we should  not do the division by width * height here)
+    bool hasNormal = (normal != vec3(0.0));  // probes do not supply normals to this calculation
+    float nDotL =  hasNormal ? max(0.0, dot(lightVecOut, normal)) : 1.0;
+
+    // Only accumulate samples when the sample on the rectangle is visible from this texel.
+    if (occlusionMode == OCCLUSIONMODE_SHADOWMASK && nDotL > 0.0)
+    {
+        int shadowMaskChannel = GetShadowMaskChannel(lightIdx);
+        vec4 samples = vec4(0.0, 0.0, 0.0, 0.0);
+        samples[shadowMaskChannel] = 1.0;
+        accumulate(SHADOW_MASK_SAMPLE_BUFFER, samples);
+    }
+
+    colorOut *= solidAngle * nDotL / PI;
+    return true;
+}
+
+//Do the lighting calculation for the provided position+normal
+bool CalculateDiscLightColor(int lightIdx, vec3 normal, vec3 position, vec2 rnd, inout vec3 colorOut, inout vec3 lightVecOut, inout float maxTOut, OcclusionMode occlusionMode)
+{
+    // check for early out
+    vec3 lightDir = -normalize(Lights.LightDirections[lightIdx]); // we negate to undo negation in Wintermute/Scene.cpp
+    vec3 lightCenter = Lights.LightPositions[lightIdx];
+    vec3 texelToLight = position - lightCenter;  // account for area light size?
+
+    // light backfacing?
+    if(dot(lightDir, texelToLight) < 0.0)
+        return false;
+
+    // range check
+    float range = Lights.LightProperties0[lightIdx].x;
+    float ttlDistSq = dot( texelToLight, texelToLight );
+    if (ttlDistSq > (range*range))
+        return false;
+
+    // Sample uniformly on 2d disc area
+    float radius = Lights.LightProperties1[lightIdx].y;
+
+    float rLocal = sqrt(rnd.x);
+    float thetaLocal = 2.0 * PI * rnd.y;
+    vec2 samplePointLocal = vec2(cos(thetaLocal), sin(thetaLocal)) * rLocal * radius;
+
+    // Convert sample point to world space
+    vec3 lightTan = normalize(Lights.LightTangents[lightIdx]);
+    vec3 lineCross = cross(lightDir, lightTan);
+    vec3 samplePointWorld = lightCenter + samplePointLocal.x * lightTan + samplePointLocal.y * lineCross;
+
+    // Calc contribution etc.
+    lightVecOut = samplePointWorld - position;
+    maxTOut = length(lightVecOut);
+    lightVecOut /= maxTOut;
+    bool hasNormal = (normal != vec3(0.0)); // probes do not supply normals to this calculation
+    float nDotL = hasNormal ? max(0.0, dot(lightVecOut, normal)) : 1.0;
+
+    // Only accumulate samples when the sample on the rectangle is visible from this texel.
+    if (occlusionMode == OCCLUSIONMODE_SHADOWMASK && nDotL > 0.0)
+    {
+        int shadowMaskChannel = GetShadowMaskChannel(lightIdx);
+        vec4 samples = vec4(0.0, 0.0, 0.0, 0.0);
+        samples[shadowMaskChannel] = 1.0;
+        accumulate(SHADOW_MASK_SAMPLE_BUFFER, samples);
+    }
+
+    // * (Pi / Pi) removed from the expression below as it cancels out.
+    colorOut *= (nDotL * radius * radius * dot(lightDir, -lightVecOut)) / (maxTOut * maxTOut);
+    return true;
+}
+
+//Do the lighting calculation for the provided position+normal
+bool CalculateLightColor(int lightIdx, vec3 normal, vec3 position, bool bounce, vec2 rnd, inout vec3 colorOut, inout vec3 lightVecOut, inout float maxTOut, OcclusionMode occlusionMode)
+{
+    if (bounce)
+        colorOut = Lights.LightProperties2[lightIdx].xyz;
+    else
+        colorOut = Lights.LightColors[lightIdx].xyz;
+
+    int lightType = GetLightType(lightIdx);
+
+    if (lightType == LIGHT_DIRECTIONAL)
+    {
+        return CalculateDirectionalLightColor(lightIdx, normal, colorOut, lightVecOut, maxTOut, occlusionMode);
+    }
+    else if (lightType == LIGHT_POINT)
+    {
+        return CalculatePointLightColor(lightIdx, normal, position, colorOut, lightVecOut, maxTOut, occlusionMode);
+    }
+    else if (lightType == LIGHT_SPOT)
+    {
+        return CalculateSpotLightColor(lightIdx, normal, position, colorOut, lightVecOut, maxTOut, occlusionMode);
+    }
+    else if (lightType == LIGHT_AREA)
+    {
+        return CalculateAreaLightColor(lightIdx, normal, position, rnd, colorOut, lightVecOut, maxTOut, occlusionMode);
+    }
+    else if (lightType == LIGHT_DISC)
+    {
+        return CalculateDiscLightColor(lightIdx, normal, position, rnd, colorOut, lightVecOut, maxTOut, occlusionMode);
+    }
+
+    return false;
+}
+
+vec3 PointInCosLobe(vec2 uv)
+{
+    float theta = acos(sqrt(1. - uv.x));
+    float phi   = 2. * 3.14159 * uv.y;
+    return vec3(cos(phi) * sin(theta), sin(phi) * sin(theta), cos(theta));
+}

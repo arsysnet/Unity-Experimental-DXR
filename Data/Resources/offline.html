@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Asset Store</title>
+        <meta charset="utf-8">
+        <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+        <script type="text/javascript">
+            var text = {
+                'warningHeading' : 'You Are Currently Offline',
+                'warningText' : 'You must be online in order to download content from the Asset Store. Existing downloaded content may still be imported into your current Project.',
+                'importLabel' : 'Import'
+            };
+            var images = {
+                'warningImage' : 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAeCAYAAAA7MK6iAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAz1JREFUeNrkl8lrFEEUh7t7tmiiHhQ3Ai6IiigooojgBiKKIhhQUMGrgRwM7juC4NW/QTwJIiiKFw8SD4oGXOLBNQzEPZdozDLJ9LS/J19Dpc1kEk3IwYaP7p6qer/3Xr2q6vGjKPLG4wq8cbr8bDbrFwqFYYedy+VSuq0Sy/ipRTyWjdJIhNN/4ew+sUdM5H2nuCKuj1mqFe1W3Q6KrOiBnGhU29oxSbUMT9XtGq/fxQeea8UUnnfJVueoRSxRX7fTokr0ibz4AXl+s7YT9K0sPMzC2iDWiaL4LH7idMDzF9q2iNWjErEimKDbUQxbhJ9ExHuR54+02ft5jcn9kzDjTXS2CEUrTTWiGmoQb6XPLHGoknal5bSI5VIixV/FXLEYEbtsXT8j3dZnvtgtboh3I45YHmd0u0jRdIu3ONDPcspwD3Aiok8PYy7JRnpEwqRpv1iO0Teik/5WwT6RphDso83m+TUO2ti95VJeLuJpoh6j7eI9YiEiEdOUoX8fYj59v/HegK3Kwnh4liKxtL5wxIwC9xypdoUjZ0wRG2cGizoYRHSj7UAYshS30a/kzHGAcGyxF9E46janJurEpqR4MmJrPUUkHaKZ32OjsUiJNGfIQL8TcYR4MzbM1kkK7k9hPGoUK5nLJ+zJcdWGGI+Fq3C012kLnWXWgY0QmwPWduCILuDk8dl/X1K1oRNNnG6b08liEs+h0xaT4qzOY9NsL4zF3VRfEDOIoMkpqKSoXa/s8Cei2LArGjmF1oTN6eLcgGORYrrKoHvijlM47mkTJeY53rmqhtj9rO92sZlAD9iulibK4xRBHg9Tjoh7ehVZl3X0Mae6cLYbw1HC2QCbS8UccUw8TOlqwAsbeJP9NeOIupjwTHa1eRiyFD7CAT/hbOQ4Z9W/hHHtAV8QAVXYwo5UKlNUJcS72JMLOByWqYf4PcWm0oEjtWnEPCJZI+7SWO5LwjaGI4l5LySmxEu0G9vQ+P1lasVlEd8SK4jigfOF4SXS5yc2Ey/hpD9IXZQ4s9dThE/tqDXhHBN/2/ForC47s3eI5779hWFR23fVYT7Wq4dInZfIQMUvWWrC1vxlcd9+8/+7/06/BBgACYwj8ToEtN4AAAAASUVORK5CYII='
+
+            };
+
+
+            function createHeader()
+            {
+                var header = document.createElement('header');
+                document.getElementsByTagName('body')[0].appendChild(header);
+            }
+
+            function createWarning()
+            {
+                var warning = document.createElement('section');
+                warning.className="warning";
+                var warning_img = document.createElement('img');
+                warning_img.src = images.warningImage;
+                var warning_h1 = document.createElement('h1');
+                var warning_h1_text = document.createTextNode(text.warningHeading);
+                warning_h1.appendChild(warning_h1_text);
+                var warning_p = document.createElement('p');
+                var warning_p_text = document.createTextNode(text.warningText);
+                warning_p.appendChild(warning_p_text);
+                warning.appendChild(warning_img);
+                warning.appendChild(warning_h1);
+                warning.appendChild(warning_p);
+                document.getElementsByTagName('body')[0].appendChild(warning);
+            }
+
+            function createList()
+            {
+                var pkgs = typeof(window.context)!=='undefined'? window.context.GetPackageList().results : [];
+                var downloadArea = document.createElement('section');
+                downloadArea.id = 'downloadarea';
+                document.getElementsByTagName('body')[0].appendChild(downloadArea);
+                var list = document.createElement('div');
+                list.id = 'packagelist';
+                for ( var i in pkgs )
+                {
+                    var pkg = pkgs[i];
+                    var item = document.createElement('div');
+                    createListItem(pkg, item);
+                    list.appendChild(item);
+                }
+                downloadArea.appendChild(list);
+            }
+
+            function createListItem(pkg, item)
+            {
+                item.id = pkg.id;
+                item.className = 'package';
+                createPackageTitle(pkg, item);
+                createPackagePublisher(pkg, item);
+                createPackageCategory(pkg, item);
+                createPackageImport(pkg, item);
+            }
+
+
+            function createPackageTitle(pkg, item)
+            {
+                var title = document.createElement('div');
+                title.className = 'packagecol wide';
+                if (typeof(pkg.local_icon)!=='undefined')
+                {
+                    var img = document.createElement('img');
+                    img.setAttribute('src', pkg.local_icon);
+                    img.setAttribute('width', '25');
+                    img.setAttribute('height', '25');
+                    img.className = 'packageicon';
+                    title.appendChild(img);
+                }
+                if (typeof(pkg.title)!=='undefined')
+                {
+                    var titleText = document.createTextNode(pkg.title)
+                    title.appendChild(titleText);
+                }
+                item.appendChild(title);
+            }
+
+            function createPackagePublisher(pkg, item)
+            {
+                var publisher = document.createElement('div');
+                publisher.className = 'packagecol wide';
+                if (typeof(pkg.publisher)!=='undefined')
+                {
+                    var publisherText = document.createTextNode(pkg.publisher.label)
+                    publisher.appendChild(publisherText);
+                }
+                item.appendChild(publisher);
+            }
+
+            function createPackageCategory(pkg, item)
+            {
+                var category = document.createElement('div');
+                category.className = 'packagecol wide';
+                if (typeof(pkg.category)!=='undefined')
+                {
+                    var categoryText = document.createTextNode(pkg.category.label)
+                    category.appendChild(categoryText);
+                }
+                item.appendChild(category);
+            }
+
+            function createPackageImport(pkg, item)
+            {
+                var importblock = document.createElement('div');
+                importblock.className = "packagecol last";
+                item.appendChild(importblock);
+                var importer = document.createElement('span');
+                var importLabel = document.createTextNode(text.importLabel);
+                importer.appendChild(importLabel);
+                importer.className = "packageButton active";
+                importer.setAttribute('data-id', pkg.id);
+                importer.onclick = function(e){
+                    var evt = e;
+                    var id = e.currentTarget.getAttribute('data-id');
+                    if (typeof(window.context)!=='undefined') window.context.OpenPackage(id, "default");
+                }
+                importblock.appendChild(importer);
+            }
+
+
+            function createFooter()
+            {
+                var footer = document.createElement('footer');
+                document.getElementsByTagName('body')[0].appendChild(footer);
+            }
+
+
+            function createDOM()
+            {
+                createHeader();
+                createWarning();
+                createList();
+                createFooter();
+            }
+
+            document.AssetStore = {};
+            document.AssetStore.refreshSkinIndex = function(){ setSkin(); }
+            document.AssetStore.updateDockStatus = function() { setDocked(); }
+            function setSkin()
+            {
+                var skin = typeof(window.context)!=='undefined'? window.context.GetSkinIndex() : 0;
+                document.getElementsByTagName('body')[0].className = "skin"+skin;
+            }
+
+            function setDocked()
+            {
+                var docked = typeof(window.context)!=='undefined'? window.context.GetDockedStatus() : false;
+                document.getElementsByTagName('header')[0].className = docked? 'docked' : '';
+
+                var top = docked? 17 : 30;
+                var bottom = 20;
+
+                var warning = document.getElementsByTagName('section')[0];
+                var downloadArea = document.getElementsByTagName('section')[1];
+
+                warning.style.top = top + 'px';
+                var warningHeight = 60;
+
+                var downloadTop = top + warningHeight;
+
+                var ht = window.innerHeight;
+
+                downloadArea.style.top = downloadTop + 'px';
+                downloadArea.style.height = (ht - (downloadTop + bottom)) + 'px';
+            }
+
+            function init()
+            {
+                setSkin();
+                createDOM();
+                setDocked();
+                window.onresize = function(){setDocked();};
+            }
+        </script>
+        <style type="text/css">
+        * {
+            -webkit-box-sizing: border-box;
+            -webkit-user-select: none;
+            cursor:default;
+            -webkit-background-clip: border-box;
+            outline: none;
+            -webkit-user-drag: none;
+            font-size: 12px;
+            line-height: 15px;
+            font-family: Helvetica, Verdana, Arial, sans-serif;
+        }
+        body {
+            background-color: #333;
+            overflow: hidden;
+        }
+        header {
+            display: block;
+            width: 100%;
+            height: 30px;
+            background-image: -webkit-gradient(linear, right top, right bottom, from(#e1e1e1), to(#c3c3c3));
+            border-bottom: 1px solid #777;
+            position: fixed;
+            top: 0px;
+            left: 0px;
+            z-index: 5000;
+        }
+        header.docked {
+            height: 17px;
+        }
+        body.skin1>header {
+            background-image: -webkit-gradient(linear, right top, right bottom, from(#3c3c3c), to(#2b2b2b)); border-bottom: 1px solid #1d1d1d;
+        }
+        footer {
+            display: block;
+            width: 100%;
+            height: 20px;
+            background-image: -webkit-gradient(linear, right top, right bottom, from(#98a7bc), to(#5f7391));
+            border-top: 1px solid #586b89;
+            position: fixed;
+            bottom: 0px;
+            left: 0px;
+            z-index: 5000;
+        }
+        body.skin1>footer{
+            background-image: -webkit-gradient(linear, left top, left bottom, from(#777), to(#444)); border-top: 1px solid #333;
+        }
+        body>section.warning{
+            position: absolute;
+            width: 1020px;
+            left: 50%;
+            margin-left: -512px;
+            height: 60px;
+            -webkit-transition: opacity 0.5s linear;
+            background-image: -webkit-gradient(linear, left top, left bottom, from(rgba(255,255,255,0.5)), to(rgba(233,237,255,0.3)));
+            padding: 15px;
+            padding-left: 200px;
+            padding-right: 200px;
+        }
+        body>section.warning>h1, body>section.warning>p{
+            display: inline;
+            padding-right: 15px;
+        }
+        body>section.warning>img{
+            display: inline-block;
+            vertical-align:middle;
+            float: left;
+            padding-right: 25px;
+        }
+        body>section#downloadarea {
+            position: absolute;
+            padding: 10px;
+            left: 50%;
+            margin-left: -512px;
+            text-align: left;
+            overflow: hidden;
+            width: 1020px;
+        }
+        body>section#downloadarea>#packagelist{
+            position: relative;
+            height: 100%;
+            overflow-y: auto;
+        }
+        body>section#downloadarea>#packagelist::-webkit-scrollbar { width: 8px; }
+        body>section#downloadarea>#packagelist::-webkit-scrollbar-button:vertical:start:decrement,
+        body>section#downloadarea>#packagelist::-webkit-scrollbar-button:vertical:end:increment,
+        body>section#downloadarea>#packagelist::-webkit-scrollbar-button:vertical:start:increment,
+        body>section#downloadarea>#packagelist::-webkit-scrollbar-button:vertical:end:decrement {
+            display: none;
+        }
+        body>section#downloadarea>#packagelist::-webkit-scrollbar-thumb:vertical {
+            background-image: -webkit-gradient(linear, left top, right top, from(#bbb), to(#888));
+            border: 1px solid #777;
+            -webkit-border-radius: 4px;
+        }
+        .packageicon {
+            vertical-align: middle;
+            margin-right: 5px;
+        }
+        #packagelist div.package {
+            display: inline-block;
+            height: 45px;
+            width: 100%;
+            line-height: 45px;
+            -webkit-transition-property: background-color;
+            -webkit-transition-duration: 1s;
+        }
+
+
+        #packagelist div.package:nth-child(odd)
+        {
+            background-color: #383838;
+        }
+        #packagelist div.package:nth-child(even)
+        {
+            background-color: #333;
+        }
+
+        #packagelist div.package.active:nth-child(odd)
+        {
+            background-color: #555;
+        }
+        #packagelist div.package.active:nth-child(even)
+        {
+            background-color: #444;
+        }
+        .packagecol {
+            display: inline-block;
+            width: 10%;
+            text-align: left;
+            padding: 5px;
+            line-height: 35px;
+            font-size: 10px;
+            color: #aaa;
+            vertical-align: middle;
+        }
+        .packagecol.wide{
+            width: 20%;
+        }
+        .packagecol.last{
+            float: right;
+            margin-right: 25px;
+        }
+
+        .packageButton {
+            width:100%;
+            height: 35px;
+            line-height: 35px;
+            text-align: center;
+            background-color: #333;
+            display: inline-block;
+            background: -webkit-gradient(linear, left top, left bottom, from(#999), to(#7f7f7f));
+            -webkit-background-clip: border-box;
+            border: 1px solid #999;
+            -webkit-border-radius: 4px;
+        }
+        .packageButton.inactive{
+            color: #777;
+        }
+        .packageButton.active{
+            color: #000;
+        }
+        .packageButton.active:active {
+            background: -webkit-gradient(linear, left top, left bottom, from(#7f7f7f), to(#999));
+        }
+
+
+        </style>
+    </head>
+    <body onload="init();" oncontextmenu="return false;"></body>
+</html>

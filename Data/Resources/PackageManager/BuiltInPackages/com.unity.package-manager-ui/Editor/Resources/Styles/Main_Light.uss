@@ -1,0 +1,1201 @@
+/***************************************************************************************************
+
+                                                        *** Auto-Generated - Do not modify .uss File ***
+
+                                                                        Only Modify Main.scss
+
+***************************************************************************************************/
+#container {
+  position: absolute;
+  top: -2px;
+  left: 0;
+  bottom: 0;
+  right: 0;
+}
+
+.display-none {
+  position: absolute;
+  overflow: hidden;
+  border-radius: 0;
+  width: 0;
+  height: 0;
+  min-height: 0;
+  max-height: 0;
+  min-width: 0;
+  max-width: 0;
+  border-top-width: 0;
+  border-left-width: 0;
+  border-bottom-width: 0;
+  border-right-width: 0;
+  border-top-width: 0;
+  border-left-width: 0;
+  border-bottom-width: 0;
+  border-right-width: 0;
+  padding-top: 0;
+  padding-left: 0;
+  padding-bottom: 0;
+  padding-right: 0;
+  margin-top: 0;
+  margin-left: 0;
+  margin-bottom: 0;
+  margin-right: 0;
+}
+
+.row, #detailListView .combo, #detailListView #detailView .detail #detailActions, #detailListView #detailView .detail .detailActions, #detailListView #detailView .detail .versionContainer, #detailListView #detailView .detail #samplesContainer, #detailListView #dependenciesOuterContainer {
+  flex-direction: row;
+}
+
+.column, #detailListView .emptyArea, #detailListView #packageListGroup #listContainerOuter, #detailListView #packageListGroup #packageList, #detailListView #packageListGroup #listContainer, #detailListView #packageListGroup #listGroups, #detailListView #packageListGroup #scrollView, #detailListView #dependenciesOuterContainer #dependenciesInnerContainer {
+  flex: 1 0 0;
+  flex-direction: column;
+}
+
+.tag {
+  border-top-width: 1px;
+  border-left-width: 1px;
+  border-bottom-width: 1px;
+  border-right-width: 1px;
+  padding-top: 1px;
+  padding-left: 3px;
+  padding-bottom: 1px;
+  padding-right: 3px;
+  font-size: 9px;
+  border-radius: 5px;
+  -unity-text-align: middle-center;
+  border-color: #000000;
+  color: #000000;
+}
+
+#toolbarContainer {
+  flex-direction: row;
+  align-items: flex-start;
+  height: 18px;
+  overflow: hidden;
+}
+#toolbarContainer #toolbarView {
+  flex: 1 0 0;
+  flex-direction: row;
+  align-items: flex-start;
+  background-image: resource("Builtin Skins/LightSkin/Images/Toolbar.png");
+  margin-top: -1px;
+  -unity-slice-top: 1px;
+  -unity-slice-left: 1px;
+  -unity-slice-bottom: 1px;
+  -unity-slice-right: 1px;
+}
+#toolbarContainer #toolbarView .toolbarButton {
+  flex: 1 0 0;
+  font-size: 9px;
+  -unity-text-align: middle-center;
+  background-image: resource("Builtin Skins/LightSkin/Images/toolbar button.png");
+  flex: 0 0 auto;
+  padding-top: 0;
+  padding-left: 0;
+  padding-bottom: 0;
+  padding-right: 0;
+  -unity-slice-top: 4px;
+  -unity-slice-left: 6px;
+  -unity-slice-bottom: 4px;
+  -unity-slice-right: 6px;
+  margin-top: 0;
+  margin-left: 0;
+  margin-bottom: 0;
+  margin-right: -1px;
+  padding-top: 0;
+  padding-left: 5px;
+  padding-bottom: 0;
+  padding-right: 5px;
+  height: 19px;
+}
+#toolbarContainer #toolbarView .toolbarButton.display-none {
+  position: absolute;
+  border-radius: 0;
+  width: 0;
+  height: 0;
+  min-height: 0;
+  max-height: 0;
+  min-width: 0;
+  max-width: 0;
+  border-top-width: 0;
+  border-left-width: 0;
+  border-bottom-width: 0;
+  border-right-width: 0;
+  min-width: 0;
+  border-top-width: 0;
+  border-left-width: 0;
+  border-bottom-width: 0;
+  border-right-width: 0;
+  padding-top: 0;
+  padding-left: 0;
+  padding-bottom: 0;
+  padding-right: 0;
+  margin-top: 0;
+  margin-left: 0;
+  margin-bottom: 0;
+  margin-right: 0;
+  -unity-slice-top: 0;
+  -unity-slice-left: 0;
+  -unity-slice-bottom: 0;
+  -unity-slice-right: 0;
+  visibility: hidden;
+}
+#toolbarContainer #toolbarView .toolbarButton:hover {
+  color: #000000;
+}
+#toolbarContainer #toolbarView .toolbarButton.space {
+  margin-left: 7px;
+}
+#toolbarContainer #toolbarView .toolbarButton.active {
+  background-image: resource("Builtin Skins/LightSkin/Images/toolbar button act.png");
+}
+#toolbarContainer #toolbarView .toolbarButton.pulldown:active {
+  background-image: resource("Builtin Skins/LightSkin/Images/toolbar button.png");
+}
+#toolbarContainer #toolbarView #toolbarLeft {
+  flex: 0 0 auto;
+  flex-direction: row;
+  align-items: flex-start;
+}
+#toolbarContainer #toolbarView #toolbarLeft #toolbarAddButton {
+  font-size: 13px;
+  padding-top: 0;
+  padding-left: 8px;
+  padding-bottom: 4px;
+  padding-right: 8px;
+  margin-right: -8px;
+}
+#toolbarContainer #toolbarView #toolbarRight {
+  flex: 1 0 0;
+  flex-direction: row;
+  justify-content: flex-end;
+}
+#toolbarContainer #toolbarView #toolbarRight #toolbarSearch {
+  flex: 1 0 0;
+  height: 18px;
+  max-width: 500px;
+  flex-direction: row;
+  margin-top: 0;
+  margin-left: 0;
+  margin-bottom: 0;
+  margin-right: 5px;
+}
+
+#searchContainer {
+  flex: 1 0 0;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  height: 14px;
+  margin-top: 0;
+  margin-left: 0;
+  margin-bottom: 0;
+  margin-right: 0;
+}
+#searchContainer .unity-base-field {
+  flex: 1 0 0;
+  margin-bottom: 0;
+  min-height: 15px;
+  height: unset;
+}
+#searchContainer .unity-base-text-field.placeholder .unity-base-field__input {
+  color: #6C6C6C;
+}
+#searchContainer .unity-base-field__input {
+  flex: 1 0 0;
+  font-size: 9px;
+  background-image: resource("Builtin Skins/LightSkin/Images/toolbarsearch.png");
+  margin-top: 1px;
+  margin-left: 5px;
+  margin-bottom: 1px;
+  margin-right: 5px;
+  padding-top: 2px;
+  padding-left: 17px;
+  padding-bottom: 1px;
+  padding-right: 17px;
+  -unity-slice-top: 1px;
+  -unity-slice-left: 14px;
+  -unity-slice-bottom: 1px;
+  -unity-slice-right: 0;
+  height: 15px;
+}
+#searchContainer .unity-base-field__input:focus {
+  background-image: resource("Builtin Skins/LightSkin/Images/toolbarsearch focused.png");
+}
+#searchContainer #searchCancelButton {
+  width: 14px;
+  height: 15px;
+  min-height: 15px;
+  background-image: resource("Builtin Skins/LightSkin/Images/toolbarsearchCancelButtonOff.png");
+  flex: 0 0 auto;
+  padding-top: 0;
+  padding-left: 0;
+  padding-bottom: 0;
+  padding-right: 0;
+  -unity-slice-top: 4px;
+  -unity-slice-left: 6px;
+  -unity-slice-bottom: 4px;
+  -unity-slice-right: 6px;
+  -unity-slice-top: 1px;
+  -unity-slice-left: 0;
+  -unity-slice-bottom: 1px;
+  -unity-slice-right: 14px;
+  margin-top: 1px;
+  margin-left: -10px;
+  margin-bottom: 0;
+  margin-right: 0;
+  padding-top: 0;
+  padding-left: 0;
+  padding-bottom: 0;
+  padding-right: 0;
+  border-top-width: 0;
+  border-left-width: 0;
+  border-bottom-width: 0;
+  border-right-width: 0;
+}
+#searchContainer #searchCancelButton.display-none {
+  position: absolute;
+  border-radius: 0;
+  width: 0;
+  height: 0;
+  min-height: 0;
+  max-height: 0;
+  min-width: 0;
+  max-width: 0;
+  border-top-width: 0;
+  border-left-width: 0;
+  border-bottom-width: 0;
+  border-right-width: 0;
+  min-width: 0;
+  border-top-width: 0;
+  border-left-width: 0;
+  border-bottom-width: 0;
+  border-right-width: 0;
+  padding-top: 0;
+  padding-left: 0;
+  padding-bottom: 0;
+  padding-right: 0;
+  margin-top: 0;
+  margin-left: 0;
+  margin-bottom: 0;
+  margin-right: 0;
+  -unity-slice-top: 0;
+  -unity-slice-left: 0;
+  -unity-slice-bottom: 0;
+  -unity-slice-right: 0;
+  visibility: hidden;
+}
+#searchContainer #searchCancelButton:hover {
+  color: #000000;
+}
+#searchContainer #searchCancelButton.on {
+  background-image: resource("Builtin Skins/LightSkin/Images/toolbarsearchCancelButton.png");
+}
+#searchContainer #searchCancelButton:active {
+  background-image: resource("Builtin Skins/LightSkin/Images/toolbarsearchCancelButtonActive.png");
+}
+
+#detailListView {
+  flex: 1 0 0;
+  flex-direction: row;
+}
+#detailListView .link {
+  color: #0808FC;
+  background: rgba(0, 0, 0, 0);
+  background-image: none;
+  margin-top: 0;
+  margin-left: 0;
+  margin-bottom: 0;
+  margin-right: 0;
+  padding-top: 0;
+  padding-left: 0;
+  padding-bottom: 0;
+  padding-right: 0;
+  cursor: link;
+}
+#detailListView .emptyArea {
+  flex: 1 0 0;
+}
+#detailListView .emptyArea .title {
+  -unity-text-align: middle-center;
+  font-size: 14px;
+}
+#detailListView .emptyArea .loading {
+  position: relative;
+  top: 7px;
+  left: 7px;
+  border-top-width: 0;
+  border-left-width: 0;
+  border-bottom-width: 0;
+  border-right-width: 0;
+  padding-top: 0;
+  padding-left: 0;
+  padding-bottom: 0;
+  padding-right: 0;
+  margin-top: 0;
+  margin-left: 0;
+  margin-bottom: 0;
+  margin-right: 0;
+  -unity-slice-top: 0;
+  -unity-slice-left: 0;
+  -unity-slice-bottom: 0;
+  -unity-slice-right: 0;
+  width: 14px;
+  height: 14px;
+  max-width: 14px;
+  max-height: 14px;
+}
+#detailListView #headerTitle {
+  flex: 1 0 0;
+  font-size: 12px;
+  -unity-font-style: bold;
+  color: #000000;
+}
+#detailListView #headerCaret {
+  flex: 0 0 auto;
+  font-size: 12px;
+  -unity-font-style: bold;
+  color: #000000;
+  min-width: 16px;
+}
+#detailListView #spinnerContainer {
+  width: 14px;
+  flex: 0.1 0 0;
+  flex-direction: column;
+  align-items: center;
+}
+#detailListView .loading {
+  top: 7px;
+  left: 7px;
+  border-top-width: 0;
+  border-left-width: 0;
+  border-bottom-width: 0;
+  border-right-width: 0;
+  padding-top: 0;
+  padding-left: 0;
+  padding-bottom: 0;
+  padding-right: 0;
+  margin-top: 0;
+  margin-left: 0;
+  margin-bottom: 0;
+  margin-right: 0;
+  -unity-slice-top: 0;
+  -unity-slice-left: 0;
+  -unity-slice-bottom: 0;
+  -unity-slice-right: 0;
+  width: 14px;
+  height: 14px;
+  max-width: 14px;
+  max-height: 14px;
+}
+#detailListView .combo {
+  margin-top: 3px;
+  margin-left: 3px;
+  margin-bottom: 3px;
+  margin-right: 3px;
+  padding-top: 3px;
+  padding-left: 3px;
+  padding-bottom: 3px;
+  padding-right: 3px;
+}
+#detailListView .combo .popupField .unity-base-field__input {
+  padding-top: 0;
+  padding-left: 8px;
+  padding-bottom: 0;
+  padding-right: 0;
+  margin-top: 0;
+  margin-left: 0;
+  margin-bottom: 0;
+  margin-right: 0;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+#detailListView .combo .button {
+  flex: 1 0 0;
+  font-size: 12px;
+  border-top-width: 0;
+  border-left-width: 0;
+  border-bottom-width: 0;
+  border-right-width: 0;
+  margin-top: 0;
+  margin-left: 0;
+  margin-bottom: 0;
+  margin-right: 0;
+  padding-top: 2px;
+  padding-left: 6px;
+  padding-bottom: 3px;
+  padding-right: 6px;
+  -unity-slice-top: 4px;
+  -unity-slice-left: 1;
+  -unity-slice-bottom: 4px;
+  -unity-slice-right: 1;
+  -unity-text-align: middle-center;
+  border-left-width: 0;
+  border-top-width: 0;
+  border-right-width: 0;
+  border-bottom-width: 0;
+  background-image: resource("Builtin Skins/LightSkin/Images/btn mid.png");
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+#detailListView .combo .button.selected {
+  background-image: resource("Builtin Skins/LightSkin/Images/btn mid on.png");
+  color: #f4f4f4;
+}
+#detailListView .combo .button.first {
+  -unity-slice-top: 4px;
+  -unity-slice-left: 6px;
+  -unity-slice-bottom: 4px;
+  -unity-slice-right: 6;
+  background-image: resource("Builtin Skins/LightSkin/Images/btn left.png");
+}
+#detailListView .combo .button.first.selected {
+  background-image: resource("Builtin Skins/LightSkin/Images/btn left on.png");
+}
+#detailListView .combo .button.last {
+  -unity-slice-top: 4px;
+  -unity-slice-left: 6;
+  -unity-slice-bottom: 4px;
+  -unity-slice-right: 6px;
+  background-image: resource("Builtin Skins/LightSkin/Images/btn right.png");
+}
+#detailListView .combo .button.last.selected {
+  background-image: resource("Builtin Skins/LightSkin/Images/btn right on.png");
+}
+#detailListView .combo .button.small {
+  flex: 0.5 0 0;
+  padding-top: 0;
+  padding-left: 0;
+  padding-bottom: 0;
+  padding-right: 0;
+}
+#detailListView #packageListGroup {
+  width: 300px;
+  border-right-width: 1px;
+  border-color: rgba(0, 0, 0, 0.5);
+}
+#detailListView #packageListGroup #groupContainerOuter #headerContainer {
+  flex: 1 0 0;
+  flex-direction: row;
+  align-items: center;
+  border-color: rgba(0, 0, 0, 0.5);
+}
+#detailListView #packageListGroup #groupContainerOuter #headerContainer #headerTitle {
+  height: 0;
+  min-height: 0;
+  margin-top: 0;
+  margin-left: 0;
+  margin-bottom: 0;
+  margin-right: 0;
+  padding-top: 0;
+  padding-left: 0;
+  padding-bottom: 0;
+  padding-right: 0;
+  border-top-width: 0;
+  border-left-width: 0;
+  border-bottom-width: 0;
+  border-right-width: 0;
+}
+#detailListView #packageListGroup #groupContainerOuter #groupContainer {
+  margin-top: 0;
+  margin-left: 0;
+  margin-bottom: 0;
+  margin-right: 0;
+}
+#detailListView #packageListGroup #scrollView #unity-vertical-scroller {
+  bottom: 0;
+}
+#detailListView #packageListGroup #scrollView #unity-horizontal-scroller {
+  height: 0;
+}
+#detailListView #packageListGroup #scrollView #unity-content-viewport {
+  bottom: 0;
+}
+#detailListView #packageListGroup #scrollView #unity-content-viewport #unity-content-container {
+  right: 0;
+  left: 0;
+}
+#detailListView #packageListGroup #noResult #noResultText {
+  -unity-word-wrap: true;
+  white-space: normal;
+}
+#detailListView .packageItem {
+  margin-top: 0;
+  margin-left: 0;
+  margin-bottom: 0;
+  margin-right: 0;
+  border-color: rgba(0, 0, 0, 0.5);
+  border-bottom-width: 1px;
+}
+#detailListView .packageItem #itemLabel {
+  flex-direction: row;
+  align-items: center;
+}
+#detailListView .packageItem #itemLabel .unity-label {
+  padding-top: 1px;
+  padding-left: 2px;
+  padding-bottom: 2px;
+  padding-right: 2px;
+  margin-top: 2px;
+  margin-left: 4px;
+  margin-bottom: 2px;
+  margin-right: 4px;
+  min-height: unset;
+}
+#detailListView .packageItem #itemLabel.selected {
+  background-color: #3e7de7;
+  color: #f4f4f4;
+}
+#detailListView .packageItem #itemLabel.selected #packageName, #detailListView .packageItem #itemLabel.selected #packageVersion {
+  color: #f4f4f4;
+}
+#detailListView .packageItem #itemLabel .status {
+  min-height: unset;
+  flex: 0 0 14;
+  width: 14px;
+  height: 14px;
+  padding-top: 1px;
+  padding-left: 2px;
+  padding-bottom: 2px;
+  padding-right: 2px;
+  margin-top: 2px;
+  margin-left: 2px;
+  margin-right: 0;
+}
+#detailListView .packageItem #itemLabel .status.installed {
+  background-image: resource("Builtin Skins/LightSkin/Images/MenuItemOn.png");
+}
+#detailListView .packageItem #itemLabel .status.installed.no-icon {
+  background-image: none;
+}
+#detailListView .packageItem #itemLabel .status.outdated {
+  background-image: resource("Images/Light/download");
+}
+#detailListView .packageItem #itemLabel .status.outdated.no-icon {
+  background-image: none;
+}
+#detailListView .packageItem #itemLabel .status.inprogress {
+  background-image: none;
+}
+#detailListView .packageItem #itemLabel .status.error {
+  background-image: resource("Images/Dark/error");
+}
+#detailListView .packageItem #itemLabel .name {
+  flex: 1 0 0;
+  width: 160px;
+  font-size: 12px;
+  margin-left: 0;
+  margin-right: 5px;
+  overflow: hidden;
+}
+#detailListView .packageItem .endText {
+  padding-left: 0;
+  padding-right: 5px;
+}
+#detailListView .packageItem #itemVersions {
+  background-color: #D5D5D5;
+}
+#detailListView .packageItem #itemVersions #versionList {
+  min-height: 75px;
+  max-height: 150px;
+  flex: 1 0 auto;
+}
+#detailListView .packageItem #itemVersions #versionList.hasScrollBar PackageVersionLabel {
+  padding-right: 11px;
+}
+#detailListView .packageItem #itemVersions #versionList PackageVersionLabel {
+  min-height: unset;
+  overflow: hidden;
+  color: #000000;
+  padding-right: 26px;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  -unity-text-align: middle-right;
+  margin-top: 0;
+  margin-left: 0;
+  margin-bottom: 0;
+  margin-right: 0;
+}
+#detailListView .packageItem #itemVersions #versionList PackageVersionLabel.selected {
+  background-color: #3e7de7;
+  color: #f4f4f4;
+}
+#detailListView .packageItem #itemVersions #versionsToolbar {
+  align-items: flex-end;
+  border-top-width: 1px;
+  border-color: rgba(0, 0, 0, 0.5);
+}
+#detailListView .packageItem #itemVersions #versionsToolbar .unity-label {
+  padding-top: 1px;
+  padding-left: 2px;
+  padding-bottom: 2px;
+  padding-right: 2px;
+  margin-top: 2px;
+  margin-left: 4px;
+  margin-bottom: 2px;
+  margin-right: 4px;
+  min-height: unset;
+}
+#detailListView #detailsGroup {
+  flex: 1 0 0;
+}
+#detailListView #detailsGroup #detailsContainer {
+  flex: 1 0 0;
+  flex-direction: column;
+  position: relative;
+}
+#detailListView #detailView {
+  flex: 1 0 0;
+}
+#detailListView #detailView #unity-vertical-scroller {
+  bottom: 0;
+}
+#detailListView #detailView #unity-content-viewport #unity-content-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+}
+#detailListView #detailView .detail {
+  padding-top: 5px;
+  padding-left: 5px;
+  padding-bottom: 5px;
+  padding-right: 5px;
+}
+#detailListView #detailView .detail .header {
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+#detailListView #detailView .detail .header #titleContainer {
+  flex: 1 0 0;
+}
+#detailListView #detailView .detail .header #titleContainer #detailTitle {
+  font-size: 18px;
+  -unity-font-style: bold;
+  -unity-word-wrap: true;
+  white-space: normal;
+  margin-top: 0;
+  margin-left: 4px;
+  margin-bottom: 0;
+  margin-right: 0;
+}
+#detailListView #detailView .detail .unity-button {
+  border-top-width: 4px;
+  border-left-width: 6px;
+  border-bottom-width: 4px;
+  border-right-width: 6px;
+  -unity-text-align: middle-center;
+}
+#detailListView #detailView .detail .unity-label {
+  margin-top: 2px;
+  margin-left: 4px;
+  margin-bottom: 2px;
+  margin-right: 4px;
+  padding-top: 1px;
+  padding-left: 2px;
+  padding-bottom: 2px;
+  padding-right: 2px;
+}
+#detailListView #detailView .detail #detailVersion {
+  font-size: 16px;
+  max-height: 30px;
+}
+#detailListView #detailView .detail #detailName {
+  max-height: 20px;
+  -unity-font-style: italic;
+}
+#detailListView #detailView .detail #detailPackageStatus {
+  -unity-font-style: bold;
+  -unity-word-wrap: true;
+  white-space: normal;
+}
+#detailListView #detailView .detail #detailTag {
+  width: 60px;
+  font-size: 12px;
+  border-radius: 5px;
+  border-color: #b4b4b4;
+  border-top-width: 2px;
+  border-left-width: 2px;
+  border-bottom-width: 2px;
+  border-right-width: 2px;
+  -unity-text-align: middle-center;
+}
+#detailListView #detailView .detail #detailDesc, #detailListView #detailView .detail #detailModuleReference {
+  font-size: 12px;
+  -unity-word-wrap: true;
+  white-space: normal;
+}
+#detailListView #detailView .detail #detailDesc.empty, #detailListView #detailView .detail #detailModuleReference.empty {
+  -unity-font-style: italic;
+}
+#detailListView #detailView .detail #detailAuthor {
+  font-size: 12px;
+  -unity-word-wrap: true;
+  white-space: normal;
+}
+#detailListView #detailView .detail #detailCategory {
+  font-size: 12px;
+  -unity-word-wrap: true;
+  white-space: normal;
+  margin-bottom: 5px;
+}
+#detailListView #detailView .detail #changeLogContainer, #detailListView #detailView .detail #viewLicensesContainer {
+  flex: 0 0 auto;
+  flex-direction: row;
+}
+#detailListView #detailView .detail #detailActions, #detailListView #detailView .detail .detailActions {
+  flex: 0 0 auto;
+  flex-direction: row;
+  margin-left: 2px;
+}
+#detailListView #detailView .detail #detailActions .detailAction, #detailListView #detailView .detail .detailActions .detailAction {
+  margin-left: 0;
+  margin-right: 0;
+  padding-left: 2px;
+  padding-right: 2px;
+  border-left-width: 2px;
+  border-right-width: 2px;
+}
+#detailListView #detailView .detail #detailActions .detailActionSeparator, #detailListView #detailView .detail .detailActions .detailActionSeparator {
+  margin-left: 0;
+  margin-right: 0;
+  padding-left: 0;
+  padding-right: 0;
+  border-left-width: 0;
+  border-right-width: 0;
+}
+#detailListView #detailView .detail #detailActions #thirdPartyNoticeLabel, #detailListView #detailView .detail .detailActions #thirdPartyNoticeLabel {
+  margin-top: 4px;
+  margin-left: 0;
+  margin-bottom: 4px;
+  margin-right: 0;
+  padding-top: 0;
+  padding-left: 0;
+  padding-bottom: 0;
+  padding-right: 0;
+  -unity-word-wrap: true;
+  white-space: normal;
+}
+#detailListView #detailView .detail #detailActions #viewThirdParty, #detailListView #detailView .detail .detailActions #viewThirdParty {
+  border-right-width: 0;
+}
+#detailListView #detailView .detail .versionContainer {
+  align-items: center;
+  justify-content: flex-start;
+}
+#detailListView #detailView .detail .versionContainer #detailVersion {
+  flex: 0 0 auto;
+}
+#detailListView #detailView .detail #samplesHeaderLabel {
+  margin-top: 10px;
+  -unity-font-style: bold;
+}
+#detailListView #detailView .detail #samplesContainer #importStatusContainer Label {
+  width: 16px;
+  height: 16px;
+  margin-top: 6px;
+  margin-left: 2px;
+  margin-bottom: 6px;
+  margin-right: 2px;
+}
+#detailListView #detailView .detail #samplesContainer #importStatusContainer Label.imported {
+  background-image: resource("Builtin Skins/LightSkin/Images/MenuItemOn.png");
+}
+#detailListView #detailView .detail #samplesContainer #nameLabelContainer Label {
+  margin-top: 2px;
+  margin-left: 4px;
+  margin-bottom: 2px;
+  margin-right: 12px;
+  height: 24px;
+  -unity-text-align: middle-left;
+}
+#detailListView #detailView .detail #samplesContainer #sizeLabelContainer Label {
+  margin-top: 2px;
+  margin-left: 8px;
+  margin-bottom: 2px;
+  margin-right: 12px;
+  height: 24px;
+  -unity-text-align: middle-left;
+}
+#detailListView #detailView .detail #samplesContainer #importButtonContainer Button {
+  overflow: visible;
+  margin-top: 4px;
+  margin-left: 8px;
+  margin-bottom: 4px;
+  margin-right: 12px;
+  height: 20px;
+}
+#detailListView #detailView .detail .tag {
+  border-color: #d25a00;
+  color: #d25a00;
+}
+#detailListView #detailView .detail .tag.verified {
+  border-color: #000;
+  color: #000;
+}
+#detailListView #detailView .detail .tagLine {
+  flex: 0 0 auto;
+  flex-direction: row;
+}
+#detailListView #detailView .detail #detailDependencies {
+  flex: 1 0 0;
+  margin-top: 10px;
+}
+#detailListView #detailError {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  right: 5px;
+  min-height: 200px;
+  -unity-word-wrap: true;
+  white-space: normal;
+}
+#detailListView #detailError.display-none {
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  width: 0;
+  height: 0;
+  min-height: 0;
+  max-height: 0;
+  border-top-width: 0;
+  border-left-width: 0;
+  border-bottom-width: 0;
+  border-right-width: 0;
+  padding-top: 0;
+  padding-left: 0;
+  padding-bottom: 0;
+  padding-right: 0;
+  margin-top: 0;
+  margin-left: 0;
+  margin-bottom: 0;
+  margin-right: 0;
+}
+#detailListView #packageToolBar {
+  position: relative;
+  margin-top: 2px;
+  margin-left: 0;
+  margin-bottom: 0;
+  margin-right: 0;
+  border-color: rgba(0, 0, 0, 0.5);
+  border-top-width: 1px;
+  border-left-width: 0;
+  border-bottom-width: 0;
+  border-right-width: 0;
+  background-color: #D5D5D5;
+  min-height: 30px;
+  max-height: 30px;
+}
+#detailListView #packageToolBar #toolbarContainer {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 30px;
+  max-height: 30px;
+}
+#detailListView #packageToolBar #toolbarContainer #leftItems {
+  flex-shrink: 1;
+}
+#detailListView #packageToolBar #toolbarContainer #rightItems {
+  flex-grow: 1;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-end;
+}
+#detailListView #packageToolBar #toolbarContainer .unity-label {
+  margin-top: 2px;
+  margin-left: 4px;
+  margin-bottom: 2px;
+  margin-right: 4px;
+  padding-top: 1px;
+  padding-left: 2px;
+  padding-bottom: 2px;
+  padding-right: 2px;
+}
+#detailListView #packageToolBar #toolbarContainer Button {
+  flex: 0 0 auto;
+  height: 20px;
+  margin-top: 3px;
+  margin-left: 4px;
+  margin-bottom: 3px;
+  margin-right: 4px;
+  padding-top: 0px;
+  padding-left: 6px;
+  padding-bottom: 3px;
+  padding-right: 6px;
+  border-top-width: 4px;
+  border-left-width: 6px;
+  border-bottom-width: 4px;
+  border-right-width: 6px;
+  overflow: visible;
+  -unity-text-align: middle-center;
+}
+#detailListView #packageToolBar #toolbarContainer Button:hover {
+  color: #000000;
+}
+#detailListView #packageStatusBar {
+  position: relative;
+  margin-top: 2px;
+  margin-left: 0;
+  margin-bottom: 0;
+  margin-right: 0;
+  border-color: rgba(0, 0, 0, 0.5);
+  border-top-width: 1px;
+  border-left-width: 0;
+  border-bottom-width: 0;
+  border-right-width: 0;
+  min-height: 30px;
+  max-height: 30px;
+  background-color: #D5D5D5;
+}
+#detailListView #statusBarContainer {
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  min-height: 30px;
+  max-height: 30px;
+  margin-left: 2px;
+}
+#detailListView #statusBarContainer #errorIcon {
+  background-image: resource("Images/Dark/error");
+  width: 16px;
+  height: 16px;
+  margin-left: 2px;
+  margin-right: 0;
+}
+#detailListView #statusBarContainer #statusLabel {
+  padding-left: 2px;
+  -unity-font-style: italic;
+  margin-top: 2px;
+  margin-left: 4px;
+  margin-bottom: 2px;
+  margin-right: 4px;
+}
+#detailListView #statusBarContainer #statusLabel.icon {
+  margin-left: 0;
+}
+#detailListView #packageAddFromIdField {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+}
+#detailListView #addFromIdFieldContainer {
+  border-color: rgba(0, 0, 0, 0.5);
+  border-top-width: 1px;
+  border-left-width: 0;
+  border-bottom-width: 1px;
+  border-right-width: 0;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  height: 35px;
+  background-color: #c2c2c2;
+}
+#detailListView #addFromIdFieldContainer #idTextField {
+  flex: 1 0 0;
+  height: 20px;
+  -unity-text-align: middle-left;
+}
+#detailListView #addFromIdFieldContainer #addFromIdButton {
+  flex: 0 0 auto;
+  height: 25px;
+  background-image: resource("Builtin Skins/LightSkin/Images/btn.png");
+  -unity-text-align: middle-center;
+  padding-top: 2px;
+  padding-bottom: 2px;
+  border-top-width: 4px;
+  border-left-width: 6px;
+  border-bottom-width: 4px;
+  border-right-width: 6px;
+  -unity-slice-top: 4px;
+  -unity-slice-left: 6px;
+  -unity-slice-bottom: 4px;
+  -unity-slice-right: 6px;
+}
+#detailListView #dependenciesOuterContainer {
+  flex: 0 0 auto;
+  flex-direction: row;
+}
+#detailListView #dependenciesOuterContainer #dependenciesInnerContainer {
+  flex: 0 0 auto;
+  flex-direction: column;
+}
+#detailListView #dependenciesOuterContainer #dependenciesInnerContainer #dependenciesHeaderLabel {
+  flex: 0 0 auto;
+  flex-direction: row;
+  font-style: bold;
+  padding-left: 6px;
+  margin-top: 0;
+  margin-left: 0;
+  margin-bottom: 4px;
+  margin-right: 0;
+}
+#detailListView #dependenciesOuterContainer #dependenciesInnerContainer #dependenciesContainer {
+  flex: 0 0 auto;
+  flex-direction: row;
+  margin-left: 6px;
+  margin-right: 6px;
+}
+#detailListView #dependenciesOuterContainer #dependenciesInnerContainer #dependenciesContainer #noDependencies {
+  flex: 0 0 auto;
+  padding-left: 0;
+  padding-right: 0;
+  margin-left: 0;
+  margin-right: 0;
+}
+#detailListView #dependenciesOuterContainer #dependenciesInnerContainer #dependenciesContainer #noDependencies .display-none {
+  overflow: hidden;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  width: 0;
+  height: 0;
+  min-height: 0;
+  max-height: 0;
+  border-top-width: 0;
+  border-left-width: 0;
+  border-bottom-width: 0;
+  border-right-width: 0;
+  padding-top: 0;
+  padding-left: 0;
+  padding-bottom: 0;
+  padding-right: 0;
+  margin-top: 0;
+  margin-left: 0;
+  margin-bottom: 0;
+  margin-right: 0;
+  visibility: hidden;
+}
+#detailListView #dependenciesOuterContainer #dependenciesInnerContainer #dependenciesContainer .text {
+  font-style: normal;
+  height: 14px;
+  padding-top: 0;
+  padding-left: 0;
+  padding-bottom: 0;
+  padding-right: 2px;
+}
+#detailListView #dependenciesOuterContainer #dependenciesInnerContainer #dependenciesContainer #dependenciesNames {
+  margin-left: -4px;
+  margin-bottom: 3px;
+  margin-right: 8px;
+}
+#detailListView #dependenciesOuterContainer #dependenciesInnerContainer #dependenciesContainer #dependenciesVersions {
+  margin-left: 2px;
+  margin-bottom: 3px;
+  margin-right: 2px;
+}
+#detailListView #dependenciesOuterContainer #dependenciesInnerContainer #dependenciesContainer #dependenciesVersions {
+  margin-left: 2px;
+  margin-bottom: 3px;
+  margin-right: 2px;
+}
+
+.alert {
+  background-color: rgba(200, 0, 0, 0.8);
+  border-color: #FF0000;
+  flex-direction: row;
+  border-top-width: 1px;
+  border-left-width: 1px;
+  border-bottom-width: 1px;
+  border-right-width: 1px;
+  padding-top: 5px;
+  padding-left: 10px;
+  padding-bottom: 5px;
+  padding-right: 10px;
+}
+.alert #alertMessage {
+  flex: 1 0 0;
+  color: #f4f4f4;
+  -unity-word-wrap: true;
+  white-space: normal;
+  overflow: hidden;
+}
+.alert #close {
+  flex: 0 0 auto;
+  max-height: 30px;
+  left: 5px;
+  flex: 0 0 auto;
+  padding-top: 3px;
+  padding-left: 3px;
+  padding-bottom: 4px;
+  padding-right: 3px;
+  -unity-slice-top: 4px;
+  -unity-slice-left: 6px;
+  -unity-slice-bottom: 4px;
+  -unity-slice-right: 6px;
+}
+.alert #close.display-none {
+  position: absolute;
+  border-radius: 0;
+  width: 0;
+  height: 0;
+  min-height: 0;
+  max-height: 0;
+  min-width: 0;
+  max-width: 0;
+  border-top-width: 0;
+  border-left-width: 0;
+  border-bottom-width: 0;
+  border-right-width: 0;
+  min-width: 0;
+  border-top-width: 0;
+  border-left-width: 0;
+  border-bottom-width: 0;
+  border-right-width: 0;
+  padding-top: 0;
+  padding-left: 0;
+  padding-bottom: 0;
+  padding-right: 0;
+  margin-top: 0;
+  margin-left: 0;
+  margin-bottom: 0;
+  margin-right: 0;
+  -unity-slice-top: 0;
+  -unity-slice-left: 0;
+  -unity-slice-bottom: 0;
+  -unity-slice-right: 0;
+  visibility: hidden;
+}
+.alert #close:hover {
+  color: #000000;
+}
+
+.spinner {
+  flex: 0 0 auto;
+  top: -7px;
+  left: -7px;
+  min-width: 14px;
+  min-height: 14px;
+  max-width: 14px;
+  max-height: 14px;
+  background-image: resource("Images/Light/loading");
+}
+
+.largeSpinner {
+  flex: 0 0 auto;
+  top: -16px;
+  left: -16px;
+  min-width: 32px;
+  min-height: 32px;
+  max-width: 32px;
+  max-height: 32px;
+  background-image: resource("Images/Light/loading");
+}
+
+.arrow {
+  padding-top: 3px;
+  padding-left: 2px;
+  padding-bottom: 0;
+  padding-right: 2px;
+  opacity: 0.5;
+}
+.arrow.expanded {
+  padding-right: 1px;
+}

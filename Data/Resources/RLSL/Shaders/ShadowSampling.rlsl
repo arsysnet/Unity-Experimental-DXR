@@ -1,0 +1,37 @@
+/*
+    The contents of this file are provided under the terms described in the accompanying License.txt file. Use of this file in any way acknowledges acceptance of these terms.
+    Copyright(c) 2010 - 2017, Imagination Technologies Limited and / or its affiliated group companies. All rights reserved.
+*/
+
+vec3 GetJitteredLightVec(float shadowRadius, vec2 rnd, vec3 lightOffset, mat3 lightBasis)
+{
+    vec2 diskSample = MapSquareToDisk (rnd);
+    vec3 jitterOffset = vec3(shadowRadius * diskSample, 0.0);
+    jitterOffset =  lightBasis * jitterOffset;;
+    vec3 jitteredLightOffset = lightOffset + jitterOffset;
+    return normalize(jitteredLightOffset);
+}
+
+void EmitShadowRay(vec3 origin, vec3 direction, vec3 probeDir, vec4 diffuse, float maxT, float weight, LightmapMode lightmapMode, int target)
+{
+    createRay();
+    rl_OutRay.origin              = origin;
+    rl_OutRay.direction           = direction;
+    rl_OutRay.color               = diffuse;
+    rl_OutRay.probeDir            = probeDir;
+    rl_OutRay.defaultPrimitive    = GetLightPrimitive();
+    rl_OutRay.renderTarget        = target;
+    rl_OutRay.isOutgoing          = true;       // ?
+    rl_OutRay.sampleIndex         = 0;          // dummy, only used in the Standard.rlsl to decide on the next direction
+    rl_OutRay.cpShift             = vec3(0.0);  // dummy, only used in the Standard.rlsl to decide on the next direction
+    rl_OutRay.rayClass            = SHADOW_RAY_CLASS;
+    rl_OutRay.depth               = 0;
+    rl_OutRay.weight              = weight;
+    rl_OutRay.occlusionTest       = true;
+    rl_OutRay.albedo              = vec3(1.0);
+    rl_OutRay.maxT                = maxT;
+    rl_OutRay.sameOriginCount     = 0;
+    rl_OutRay.transmissionDepth   = 0;
+    rl_OutRay.lightmapMode        = lightmapMode;
+    emitRayWithoutDifferentials();
+}

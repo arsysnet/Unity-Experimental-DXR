@@ -1,0 +1,9 @@
+/*
+    The contents of this file are provided under the terms described in the accompanying License.txt file. Use of this file in any way acknowledges acceptance of these terms.
+    Copyright(c) 2010 - 2017, Imagination Technologies Limited and / or its affiliated group companies. All rights reserved.
+*/
+
+void main()
+{
+    Accumulate(rl_InRay.renderTarget, rl_InRay.weight * rl_InRay.color * vec4(rl_InRay.albedo,1.0), rl_InRay.probeDir, rl_InRay.lightmapMode);
+}

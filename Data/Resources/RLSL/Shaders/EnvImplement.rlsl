@@ -1,0 +1,20 @@
+/*
+    The contents of this file are provided under the terms described in the accompanying License.txt file. Use of this file in any way acknowledges acceptance of these terms.
+    Copyright(c) 2010 - 2017, Imagination Technologies Limited and / or its affiliated group companies. All rights reserved.
+*/
+
+vec3 DecodeRGBM( vec4 color )
+{
+    return (8.0 * color.a) * (color.rgb);
+}
+
+
+void main()
+{
+    if(rl_InRay.depth == 0 && (rl_InRay.renderTarget != PROBE_BUFFER) && rl_InRay.rayClass != ENV_RAY_CLASS)
+        accumulate(AO_BUFFER, vec3(1.0,1.0,1.0));
+
+    // we need to write 1.0 into the alpha so dilation during compositing doesn't kill the contribution if no lights are present in the scene
+    if (rl_InRay.rayClass == ENV_RAY_CLASS)
+        Accumulate(rl_InRay.renderTarget, vec4( rl_InRay.color.rgb * rl_InRay.weight * rl_InRay.albedo, 1.0), rl_InRay.probeDir, rl_InRay.lightmapMode);
+}

@@ -1,0 +1,23 @@
+/*
+    The contents of this file are provided under the terms described in the accompanying License.txt file. Use of this file in any way acknowledges acceptance of these terms.
+    Copyright(c) 2010 - 2017, Imagination Technologies Limited and / or its affiliated group companies. All rights reserved.
+*/
+
+attribute vec3 Vertex;
+attribute vec3 Normal;
+attribute vec2 TexCoord0;
+attribute vec2 TexCoord1;
+
+normalized transformed varying vec3 NormalVarying;
+varying vec2 TexCoord0Varying;
+varying vec2 TexCoord1Varying;
+
+
+void main()
+{
+
+    rl_Position = vec4(Vertex, 1.0);
+    NormalVarying = Normal;
+    TexCoord0Varying = TexCoord0;
+    TexCoord1Varying = TexCoord1;
+}

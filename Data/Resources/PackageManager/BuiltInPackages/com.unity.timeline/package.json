@@ -1,0 +1,10 @@
+{
+  "name": "com.unity.timeline",
+  "displayName": "Unity Timeline",
+  "version": "1.0.0",
+  "unity": "2019.1",
+  "keywords": ["unity", "animation", "editor", "timeline", "tools"],
+  "description": "Use Unity Timeline to create cinematic content, game-play sequences, audio sequences, and complex particle effects.",
+  "dependencies": {
+   }
+}

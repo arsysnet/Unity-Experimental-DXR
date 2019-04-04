@@ -1,0 +1,19 @@
+{
+    "name": "Unity.Timeline.Package.EditorTests",
+    "references": [
+        "Unity.Timeline",
+        "Unity.Timeline.Editor"
+    ],
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": []
+}

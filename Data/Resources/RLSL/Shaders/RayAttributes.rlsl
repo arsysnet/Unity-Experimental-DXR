@@ -1,0 +1,86 @@
+/*
+    The contents of this file are provided under the terms described in the accompanying License.txt file. Use of this file in any way acknowledges acceptance of these terms.
+    Copyright(c) 2010 - 2017, Imagination Technologies Limited and / or its affiliated group companies. All rights reserved.
+*/
+
+#define KPI                 3.14159265358979323846264338327950
+#define KTWOPI              6.28318530717958646
+#define KHALFPI             1.570796326794897
+#define KQUARTERPI          0.7853981633974483
+
+// Keep in sync with wmLight.h
+#define MAX_LIGHTS        32768
+#define MAX_LIGHT_REGIONS 8192
+
+#define MAX_ANGULAR_FALLOFF_TABLE_LENGTH 128 // Needs to be kept in sync with PVRJobLoadShaders.cpp::gMaxAngularFalloffTableLength
+
+#define LIGHT_SPOT        0
+#define LIGHT_DIRECTIONAL 1
+#define LIGHT_POINT       2
+#define LIGHT_AREA        3
+#define LIGHT_DISC        4
+
+#define NO_SHADOW 0.0
+#define HARD_SHADOW 1.0
+#define SOFT_SHADOW 2.0
+
+
+// FBO attachment index
+// (can overlap between lightmaps and light probes)
+// Lightmaps
+// Same as unique buffer names above
+// Light probes
+#define PROBE_BUFFER_INDEX 0                // accumulateSH uses buffers [0;SHNUMCOEFFICIENTS-1]
+#define PROBE_OCCLUSION_BUFFER_INDEX 9
+// Custom bake
+#define CUSTOM_BAKE_BUFFER_INDEX 0
+
+int GetFBOAttachmentIndex(int target)
+{
+    if (target == PROBE_BUFFER)
+        return PROBE_BUFFER_INDEX;
+    else if (target == PROBE_OCCLUSION_BUFFER)
+        return PROBE_OCCLUSION_BUFFER_INDEX;
+    else if (target == CUSTOM_BAKE_BUFFER)
+        return CUSTOM_BAKE_BUFFER_INDEX;
+
+    // target < PROBE_BUFFER
+    return target;
+}
+
+#define OutputType int
+#define OUTPUTTYPE_LIGHTMAP     0
+#define OUTPUTTYPE_LIGHTPROBES  1
+
+OutputType GetOutputType(int target)
+{
+    if (target < PROBE_BUFFER)
+        return OUTPUTTYPE_LIGHTMAP;
+    else
+        return OUTPUTTYPE_LIGHTPROBES;
+}
+
+#define MAX_GOLDEN_SAMPLES 131072 // needs to be kept in sync with "LightmapBakeTechnique::GenerateGISamples(const int numberOfSamples)"
+#define SOBOL_MATRIX_SIZE 53248 // needs to be kept in sync with "External/qmc/SobolData.h [1024*52]"
+
+// Update Standard shader's setup() when adding more ray classes.
+#define GI_RAY_CLASS     0
+#define SHADOW_RAY_CLASS 1
+#define ENV_RAY_CLASS    2
+
+#define LightmapMode int
+#define LIGHTMAPMODE_NOTUSED        -1
+#define LIGHTMAPMODE_NONDIRECTIONAL 0
+#define LIGHTMAPMODE_DIRECTIONAL    1
+
+
+rayattribute vec4 color;
+rayattribute int renderTarget;
+rayattribute float weight;
+rayattribute int sampleIndex;
+rayattribute vec3 cpShift;
+rayattribute vec3 probeDir;         // Used both for directionality and light probes.
+rayattribute vec3 albedo;
+rayattribute int sameOriginCount;
+rayattribute LightmapMode lightmapMode;
+rayattribute int transmissionDepth;

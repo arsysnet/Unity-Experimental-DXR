@@ -1,0 +1,11 @@
+{
+  "name": "unity-editor",
+  "version": "5.7.0",
+  "description": "Unity is a powerful cross-platform 3D engine and a user friendly development environment. Easy enough for the beginner and powerful enough for the expert; Unity should interest anybody who wants to easily create 3D games and applications for mobile, desktop, the web, and consoles.",
+  "author": "Unity Technologies",
+  "dependencies": {
+    "unity-editor-home": "2.2.1",
+    "unityeditor-cloud-hub": "0.0.15",
+    "unityeditor-collab-toolbar": "0.7.16"
+  }
+}

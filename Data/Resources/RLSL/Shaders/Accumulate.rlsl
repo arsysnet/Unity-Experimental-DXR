@@ -1,0 +1,77 @@
+/*
+    The contents of this file are provided under the terms described in the accompanying License.txt file. Use of this file in any way acknowledges acceptance of these terms.
+    Copyright(c) 2010 - 2017, Imagination Technologies Limited and / or its affiliated group companies. All rights reserved.
+*/
+
+#define SHNUMCOEFFICIENTS 9
+
+// 1 / (2*sqrt(kPI))
+#define K1DIV2SQRTPI        0.28209479177387814347403972578039
+// sqrt(3) / (2*sqrt(kPI))
+#define KSQRT3DIV2SQRTPI    0.48860251190291992158638462283835
+// sqrt(15) / (2*sqrt(kPI))
+#define KSQRT15DIV2SQRTPI   1.0925484305920790705433857058027
+// 3 * sqrtf(5) / (4*sqrt(kPI))
+#define K3SQRT5DIV4SQRTPI   0.94617469575756001809268107088713
+// sqrt(15) / (4*sqrt(kPI))
+#define KSQRT15DIV4SQRTPI   0.54627421529603953527169285290135
+// 1.0/3.0
+#define KONETHIRD           0.3333333333333333333333
+#define KALMOSTONETHIRD     0.315391565252520050
+// 16*kPI/17
+#define KNORMALIZATION      2.9567930857315701067858823529412
+
+void accumulateSH(int target, vec4 col, vec3 dir)
+{
+    float outsh[SHNUMCOEFFICIENTS];
+    outsh[0] = K1DIV2SQRTPI;
+    outsh[1] = - dir.y * KSQRT3DIV2SQRTPI;
+    outsh[2] =   dir.z * KSQRT3DIV2SQRTPI;
+    outsh[3] = - dir.x * KSQRT3DIV2SQRTPI;
+    outsh[4] =   dir.x * dir.y * KSQRT15DIV2SQRTPI;
+    //outsh[4] =   ((dir.x*dir.y) + (dir.x*dir.y)) * KSQRT15DIV4SQRTPI; // came from Jens' efecfac7968a, but doesn't match our direct light projection into SH on the C++ side. TODO(PVR): kill?
+    outsh[5] = - dir.y * dir.z * KSQRT15DIV2SQRTPI;
+    outsh[6] =  (dir.z*dir.z * K3SQRT5DIV4SQRTPI) + (-KALMOSTONETHIRD);
+    outsh[7] = - dir.x * dir.z * KSQRT15DIV2SQRTPI;
+    outsh[8] =  (dir.x*dir.x-dir.y*dir.y) * KSQRT15DIV4SQRTPI;
+
+    for (int c = GetFBOAttachmentIndex(target); c < SHNUMCOEFFICIENTS; c++)
+        accumulate(c, vec4(col.xyz * outsh[c] * KNORMALIZATION, 0.0));
+}
+
+// Calculate luminance like Unity does it
+float unityLinearLuminance(vec3 color)
+{
+    vec3 lumW = vec3(0.22, 0.707, 0.071);
+    return dot(color, lumW);
+}
+
+void accumulateDirectional(int target, vec4 color, vec3 dir)
+{
+    float luminance = unityLinearLuminance(color.xyz);
+    vec4 directionality = vec4(dir, 1.0) * luminance;
+
+    if (target == GI_DIRECT_BUFFER)
+        accumulate(GetFBOAttachmentIndex(DIRECTIONAL_FROM_DIRECT_BUFFER), directionality);
+    else if (target == GI_BUFFER || target == ENV_BUFFER)
+        accumulate(GetFBOAttachmentIndex(DIRECTIONAL_FROM_GI_BUFFER), directionality);
+
+    accumulate(GetFBOAttachmentIndex(target), color);
+}
+
+// may be better to recompile/load a different shader
+void Accumulate(int target, vec4 color, vec3 direction, LightmapMode lightmapMode)
+{
+    if(target == PROBE_BUFFER)
+    {
+        accumulateSH(target, color, direction);
+    }
+    else if(lightmapMode == LIGHTMAPMODE_DIRECTIONAL)
+    {
+        accumulateDirectional(target, color, direction);
+    }
+    else
+    {
+        accumulate(GetFBOAttachmentIndex(target), color);
+    }
+}

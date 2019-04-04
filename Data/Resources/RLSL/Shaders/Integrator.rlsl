@@ -1,0 +1,121 @@
+/*
+    The contents of this file are provided under the terms described in the accompanying License.txt file. Use of this file in any way acknowledges acceptance of these terms.
+    Copyright(c) 2010 - 2017, Imagination Technologies Limited and / or its affiliated group companies. All rights reserved.
+*/
+
+uniformblock IntegratorSamples {
+    int  numGoldenSamples;
+    float goldenSamples[MAX_GOLDEN_SAMPLES];
+    int sobolMatrices[SOBOL_MATRIX_SIZE];
+    int  giTotalSamplesPerPixel;
+    int  directTotalSamplesPerPixel;
+    int  envTotalSamplesPerPixel;
+    int maxBounces;
+};
+
+// Sample Sobol sequence
+#define MATSIZE 52
+float SobolSample (int index, int dimension, int scramble)
+{
+    int result = scramble;
+    for (int i = dimension * MATSIZE; index != 0; index >>= 1, ++i)
+    {
+        if ((index & 1) != 0)
+            result ^= int(IntegratorSamples.sobolMatrices[i]);
+    }
+    float res = float(result) * 2.3283064365386963e-10; // (1.f / (1ULL << 32));
+    return (res < 0.0 ? res + 1.0 : res);
+}
+
+vec2 Rotate2D (float angle, vec2 point)
+{
+    float cosAng = cos (angle);
+    float sinAng = sin (angle);
+    return vec2 (point.x*cosAng - point.y*sinAng, point.y*cosAng + point.x*sinAng);
+}
+
+// Map sample on square to disk (http://psgraphics.blogspot.com/2011/01/improved-code-for-concentric-map.html)
+vec2 MapSquareToDisk (vec2 uv)
+{
+    float phi;
+    float r;
+
+    float a = uv.x * 2.0 - 1.0;
+    float b = uv.y * 2.0 - 1.0;
+
+    if (a * a > b * b)
+    {
+        r = a;
+        phi = KQUARTERPI * (b / a);
+    }
+    else
+    {
+        r = b;
+
+        if (b == 0.0)
+        {
+            phi = KHALFPI;
+        }
+        else
+        {
+            phi = KHALFPI - KQUARTERPI * (a / b);
+        }
+    }
+
+    return vec2(r * cos(phi), r * sin(phi));
+}
+
+vec3 HemisphereCosineSample (vec2 rnd)
+{
+    vec2 diskSample = MapSquareToDisk(rnd);
+    return vec3(diskSample.x, diskSample.y, sqrt(1.0 - dot(diskSample,diskSample)));
+}
+
+vec3 SphereSample(vec2 rnd)
+{
+    float ct = 1.0 - 2.0 * rnd.y;
+    float st = sqrt(1.0 - ct * ct);
+
+    float phi = KTWOPI * rnd.x;
+    float cp = cos(phi);
+    float sp = sin(phi);
+
+    return vec3 (cp * st, sp * st, ct);
+}
+
+// iHash can end up being up to INT_MAX.
+// 1. Some usages were adding other non-negative values to it and then doing modulo operation. The modulo operator can return a negative value for a negative dividend
+// and a positive divisor (well, it always does that unless the remainder is 0).
+// 2. Similarly abs(INT_MIN) (where we can get INT_MIN from e.g. INT_MAX+1) gives INT_MIN again, as -INT_MIN can't be stored as an int in two's complement representation.
+// In either case, the result of those operations couldn't be used as an index into an array.
+// We could either:
+// a. get the negative value conditionally back into the [0;divisor) range by adding the divisor;
+// b. bring the result of iHash into a more sensible range first (by doing the modulo operation) and only then add other non-negative values to it.
+// We should not:
+// c. use abs() on the (possibly) nagative modulo result of 1. That doesn't behave nicely when the value jumps from INT_MAX to INT_MIN, because the result (that was
+// monotonically increasing up until now) starts decreasing, so we would reuse some array items and miss some others when using the result of those operations as an array index.
+// Option b. is recommended.
+int GetScreenCoordHash(vec2 pixel)
+{
+    // combine the x and y into a 32-bit int
+    int iHash = ((int(dFstrip(pixel.y)) & 0xffff) << 16) + (int(dFstrip(pixel.x)) & 0xffff);
+
+    iHash -= (iHash << 6);
+    iHash ^= (iHash >> 17);
+    iHash -= (iHash << 9);
+    iHash ^= (iHash << 4);
+    iHash -= (iHash << 3);
+    iHash ^= (iHash << 10);
+    iHash ^= (iHash >> 15);
+
+    iHash &= 0x7fffffff; //make sure it's not negative
+
+    return iHash;
+}
+
+vec3 GetRotatedHemisphereSample (vec2 rndSq, float rnd)
+{
+    float rot = rnd * KTWOPI;
+    vec3 hamDir = HemisphereCosineSample(rndSq);
+    return vec3(Rotate2D(rot, hamDir.xy).xy, hamDir.z);
+}

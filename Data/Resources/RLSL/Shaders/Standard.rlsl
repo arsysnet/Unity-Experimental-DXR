@@ -1,0 +1,205 @@
+/*
+    The contents of this file are provided under the terms described in the accompanying License.txt file. Use of this file in any way acknowledges acceptance of these terms.
+    Copyright(c) 2010 - 2017, Imagination Technologies Limited and / or its affiliated group companies. All rights reserved.
+*/
+
+uniform sampler2D  Albedo;
+uniform sampler2D  Emissive;
+uniform sampler2D  Transmission;
+uniform vec4       ST;
+uniform vec4       TransmissionST;
+uniform int        LightmapIndex;
+uniform int        IsTransmissive;
+uniform int        IsNegativelyScaled;
+uniform int        IsDoubleSided;
+
+#define MIN_PUSHOFF_DISTANCE 0.0001
+#define MIN_INTERSECTION_DISTANCE 0.001
+
+uniformblock PushOffInfo
+{
+    float pushOff;
+};
+
+void setup()
+{
+    // The output ray count for a given ray class is how many rays can be emitted by the shader when invoked by the ray class (i.e. the rl_InRay.rayClass)
+    rl_OutputRayCount[GI_RAY_CLASS] = GetMaxHardShadowLights() + GetMaxSoftShadowLights() + 1 + GetRaysPerEnvironmentIndirect(); // May emit a shadow ray for each light and a single GI ray or just a single ray for transmission
+    rl_OutputRayCount[SHADOW_RAY_CLASS] = 1; // May potentially emit a ray due to transmission
+    rl_OutputRayCount[ENV_RAY_CLASS] = 1;    // May potentially emit a ray due to transmission
+}
+
+vec2 STTransform(vec2 uv)
+{
+    return (uv * ST.xy) + ST.zw;
+}
+
+vec2 TransmissionSTTransform(vec2 uv)
+{
+    return (uv * TransmissionST.xy) + TransmissionST.zw;
+}
+
+vec3 NextBounceDirection(vec2 rnd, vec3 normal)
+{
+    // next bounce
+    vec3 hamDir = HemisphereCosineSample(rnd);
+
+    vec3 b1;
+    vec3 b2;
+    CreateOrthoNormalBasis(normal, b1, b2);
+
+    hamDir = hamDir.x*b1 + hamDir.y*b2 + hamDir.z*normal;
+
+    return hamDir;
+}
+
+// This function should be used for ray generation where the depth attribute is not increased when generating a new ray
+float GetAdjustedPushOff()
+{
+    return pow(2.0, float(rl_InRay.sameOriginCount)) * max(PushOffInfo.pushOff, MIN_PUSHOFF_DISTANCE);
+}
+
+void main()
+{
+    // This is a workaround to avoid transparent hits getting stuck due to pushoff not working in very large scenes.
+    if (rl_InRay.transmissionDepth > 100)
+    {
+        return;
+    }
+
+    // If a ray is intersecting a transmissive object (either from inside or outside)
+    if (IsTransmissive > 0)
+    {
+        vec2 transmissionUV = TransmissionSTTransform(TexCoord0Varying.xy);
+        vec4 transmission = texture2D(Transmission, transmissionUV);
+
+        // NOTE: This is wrong! The probability of either reflecting or refracting a ray
+        // should depend on the Fresnel of the material. However, since we do not support
+        // any specularity in PVR there is currently no way to query this value, so for now
+        // we use the transmission (texture) albedo.
+        float probability = (transmission.x + transmission.y + transmission.z) / 3.0;
+
+        int   dim0 = rl_InRay.depth + rl_InRay.transmissionDepth;
+        float rnd  = fract(SobolSample(rl_InRay.sampleIndex, dim0, 0) + rl_InRay.cpShift.z);
+
+        if (probability > 0.0 && (rnd < probability || rl_InRay.occlusionTest))
+        {
+            createRay();
+            rl_OutRay.direction = rl_InRay.direction;
+            rl_OutRay.origin = vec3(rl_IntersectionPoint + (rl_InRay.direction * GetAdjustedPushOff()));
+
+            rl_OutRay.color = rl_InRay.color;
+            rl_OutRay.albedo = rl_InRay.albedo;
+
+            if (rl_InRay.occlusionTest)
+                rl_OutRay.color *= vec4(transmission.xyz, 1.0);
+            else
+                rl_OutRay.albedo *= transmission.xyz;
+
+            rl_OutRay.defaultPrimitive = rl_InRay.defaultPrimitive;
+            rl_OutRay.depth = rl_InRay.depth;
+            rl_OutRay.probeDir = rl_InRay.probeDir;
+            rl_OutRay.renderTarget = rl_InRay.renderTarget;
+            rl_OutRay.isOutgoing = rl_InRay.isOutgoing;
+            rl_OutRay.sampleIndex = rl_InRay.sampleIndex;
+            rl_OutRay.cpShift = rl_InRay.cpShift;
+            rl_OutRay.rayClass = rl_InRay.rayClass;
+            rl_OutRay.weight = rl_InRay.weight;
+            rl_OutRay.maxT = rl_InRay.maxT - length(rl_IntersectionPoint - rl_OutRay.origin);
+            rl_OutRay.occlusionTest = rl_InRay.occlusionTest;
+            rl_OutRay.sameOriginCount = (rl_IntersectionT < MIN_INTERSECTION_DISTANCE) ? rl_InRay.sameOriginCount + 1 : rl_InRay.sameOriginCount;
+            rl_OutRay.transmissionDepth = rl_InRay.transmissionDepth + 1;
+            rl_OutRay.lightmapMode = rl_InRay.lightmapMode;
+            emitRayWithoutDifferentials();
+            return;
+        }
+    }
+
+    // Shadow rays should not proceed beyond this point. Note that this shader is executed on intersections between occlusion rays and transmissive objects (RL_PRIMITIVE_IS_OCCLUDER set to false).
+    if (rl_InRay.occlusionTest)
+        return;
+
+    if(rl_IntersectionT > AOInfo.aoMaxDistance && rl_InRay.depth == 0 && (rl_InRay.renderTarget != PROBE_BUFFER))
+        accumulate(AO_BUFFER, vec3(1.0,1.0,1.0));
+
+    // check hit validity
+    bool negativelyScaled = (IsNegativelyScaled > 0);
+    bool doubleSided = (IsDoubleSided > 0);
+    bool frontFacing = (negativelyScaled ? !rl_FrontFacing : rl_FrontFacing);
+
+    if (!(frontFacing || doubleSided) && rl_InRay.depth == 0)
+    {
+        if (rl_InRay.renderTarget == CUSTOM_BAKE_BUFFER)
+        {
+            accumulate(vec4(0.0,0.0,0.0,1.0));
+        }
+        else if (rl_InRay.renderTarget != PROBE_BUFFER && rl_InRay.transmissionDepth == 0)
+        {
+            accumulate(VALIDITY_BUFFER, float(1.0));
+            // accumulate -1 to sample buffer to discount this sample?
+        }
+    }
+
+    if((frontFacing || doubleSided) && rl_IsHit && IntegratorSamples.maxBounces > 0)
+    {
+        vec2 albedoUV = TexCoord1Varying.xy;
+
+        // When intersecting backface we invert rl_GeometricNormal since this is the normal of the front face
+        vec3 geometricNormal = (negativelyScaled ? -rl_GeometricNormal : rl_GeometricNormal); // account for negative scaling
+        geometricNormal = (frontFacing ? geometricNormal : -geometricNormal); // account for backface intersection
+        vec3 varyingNormal = (frontFacing ? NormalVarying : -NormalVarying); // account for backface intersection;
+
+        vec3 intersectionPushedOff = vec3(rl_IntersectionPoint + (geometricNormal * PushOffInfo.pushOff));
+
+        vec4 albedo = texture2D(Albedo, albedoUV);
+
+        // we pick the next pair of dimensions for Sobol
+        int dim0 = (rl_InRay.depth+1)*3;
+        int dim1 = dim0+1;
+        int dim2 = dim0+2;
+        vec3 rnd = fract(vec3(SobolSample(rl_InRay.sampleIndex, dim0, 0), SobolSample(rl_InRay.sampleIndex, dim1, 0), SobolSample(rl_InRay.sampleIndex, dim2, 0)) + rl_InRay.cpShift);
+
+        DoShadows(intersectionPushedOff, varyingNormal, albedo.xyz * rl_InRay.albedo.xyz, rl_InRay.renderTarget, rnd.xy, rl_InRay.probeDir, rl_InRay.lightmapMode, true, true, OCCLUSIONMODE_DIRECT_ON_BOUNCE, vec4(-1.0), rl_InRay.weight, true);
+
+
+        // add emissive
+        vec4 emissive = texture2D(Emissive, albedoUV);
+        Accumulate(rl_InRay.renderTarget, rl_InRay.weight * emissive * vec4(rl_InRay.albedo, 1.0), rl_InRay.probeDir, rl_InRay.lightmapMode);
+
+        // Env importance sampling
+        // The depth check prevents env light contribution at the last bounce of the path, preserving previous behavior
+        if (SampleIndirectEnvironment() && (rl_InRay.depth + 1) < IntegratorSamples.maxBounces)
+        {
+            if (UseEnvironmentMIS())
+                SurfaceSampleEnvironmentMIS(rl_InRay.renderTarget, intersectionPushedOff, rl_InRay.probeDir, varyingNormal, geometricNormal, albedo.xyz * rl_InRay.albedo, rnd, rl_InRay.weight, rl_InRay.depth, rl_InRay.transmissionDepth + 1, rl_InRay.lightmapMode, true);
+            else
+                SurfaceSampleEnvironment(rl_InRay.renderTarget, intersectionPushedOff, rl_InRay.probeDir, varyingNormal, geometricNormal, albedo.xyz * rl_InRay.albedo, rnd.xy, rl_InRay.weight, rl_InRay.depth, rl_InRay.transmissionDepth + 1, rl_InRay.lightmapMode, true);
+        }
+
+        // Remove reinforced indirect light below transmissive surfaces
+        bool notFirstIndirectTransmissive = (rl_InRay.depth != 0 || IsTransmissive == 0);
+        if((rl_InRay.depth + 1) < IntegratorSamples.maxBounces && notFirstIndirectTransmissive)
+        {
+            // next bounce
+            createRay();
+            rl_OutRay.origin           = intersectionPushedOff;
+            rl_OutRay.direction        = NextBounceDirection(rnd.xy, geometricNormal);
+            rl_OutRay.color            = vec4(0.0); // unused, because we're not shooting against lights
+            rl_OutRay.probeDir         = rl_InRay.probeDir;
+            rl_OutRay.defaultPrimitive = GetEnvPrimitive();
+            rl_OutRay.renderTarget     = rl_InRay.renderTarget;
+            rl_OutRay.isOutgoing       = true;
+            rl_OutRay.sampleIndex      = rl_InRay.sampleIndex;
+            rl_OutRay.cpShift          = rl_InRay.cpShift;
+            rl_OutRay.rayClass         = rl_InRay.rayClass;
+            rl_OutRay.depth            = rl_InRay.depth+1;
+            rl_OutRay.weight           = rl_InRay.weight;
+            rl_OutRay.occlusionTest    = false;
+            rl_OutRay.albedo           = albedo.xyz * rl_InRay.albedo;
+            rl_OutRay.sameOriginCount  = 0;
+            rl_OutRay.transmissionDepth= 0;
+            rl_OutRay.lightmapMode      = rl_InRay.lightmapMode;
+            emitRayWithoutDifferentials();
+        }
+    }
+}
