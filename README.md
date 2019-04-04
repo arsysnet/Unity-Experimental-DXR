@@ -16,4 +16,4 @@ Download the project from Github in the release section, unzip.
 Launch Unity.exe
 Create a new project and select DXR High Definition RP (Preview)
 
-See usage here:
+See usage here: https://github.com/Unity-Technologies/Unity-Experimental-DXR/blob/master/documentation/The%20Experimental%20DXR%20project%20manual.pdf
